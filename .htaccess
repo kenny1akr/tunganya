@@ -1,0 +1,44 @@
+# ============================================================
+# .htaccess
+# Réécriture d'URL pour navigation protégée
+# Toutes les requêtes passent par router.php
+# ============================================================
+
+RewriteEngine On
+
+# ------------------------------------------------------------
+# Ne pas réécrire les fichiers/dossiers existants
+# (images, CSS, JS, etc.)
+# ------------------------------------------------------------
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# ------------------------------------------------------------
+# Bloquer l'accès direct aux fichiers sensibles
+# ------------------------------------------------------------
+<FilesMatch "^(permissions\.php|sidebar_config\.php|config\.php|\.env)$">
+    Require all denied
+</FilesMatch>
+
+# Bloquer l'accès au dossier /template/
+RewriteRule ^template/ - [F,L]
+
+# ------------------------------------------------------------
+# Toutes les autres requêtes → router.php
+# ------------------------------------------------------------
+RewriteRule ^(.*)$ router.php?route=$1 [QSA,L]
+
+# ------------------------------------------------------------
+# Sécurité : empêcher le listage des répertoires
+# ------------------------------------------------------------
+Options -Indexes
+
+# ------------------------------------------------------------
+# Headers de sécurité
+# ------------------------------------------------------------
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-XSS-Protection "1; mode=block"
+</IfModule>

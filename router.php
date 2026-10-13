@@ -18,6 +18,10 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 // ============================================================
 // CHARGEMENT DES DÉPENDANCES
 // ============================================================
@@ -72,10 +76,10 @@ $ROUTE_DEFINITIONS = [
     "flux/materiels" => ["./dash/magasinier/stock_mouvements.php", "flux.view", "Flux matériels"],
     "flux/financiers" => ["./dash/admin/flux_financiers.php", "flux.view", "Flux financiers"],
 
-    "caisse" => ["./dash/admin/caisse_transactions.php", "caisse.view", "Caisse"],
-    "caisse/transactions" => ["./dash/admin/caisse_transactions.php", "caisse.view", "Transactions caisse"],
-    "caisse/rapports" => ["./dash/admin/caisse_rapports.php", "caisse.rapport", "Rapports financiers"],
-    "caisse/etats" => ["./dash/admin/etats_comptables.php", "caisse.rapport", "États comptables"],
+    "caisse" => ["./dash/comptable/caisse_transactions.php", "caisse.view", "Caisse"],
+    "caisse/transactions" => ["./dash/comptable/caisse_transactions.php", "caisse.view", "Transactions caisse"],
+    "caisse/rapports" => ["./dash/comptable/caisse_rapports.php", "caisse.rapport", "Rapports financiers"],
+    "caisse/etats" => ["./dash/comptable/etats_comptables.php", "caisse.rapport", "États comptables"],
     "banque" => ["./dash/admin/banque_comptes.php", "banque.view", "Comptes bancaires"],
     "banque/comptes" => ["./dash/admin/banque_comptes.php", "banque.view", "Comptes bancaires"],
     "banque/virements" => ["./dash/admin/banque_virements.php", "banque.create", "Virements"],
@@ -148,6 +152,9 @@ foreach ($ROLES as $roleName => $roleDefinition) {
         if (userCan($roleUser, $routeDefinition[1])) {
             if ($roleName === "receptionniste" && $routeName === "accueil") {
                 $routeDefinition[0] = "./dash/receptionist/index.php";
+            }
+            if ($roleName === "comptable" && $routeName === "accueil") {
+                $routeDefinition[0] = "./dash/comptable/index.php";
             }
             if ($roleName === "magasinier" && $routeName === "accueil") {
                 $routeDefinition[0] = "./dash/magasinier/index.php";

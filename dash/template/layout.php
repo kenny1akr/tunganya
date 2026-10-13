@@ -378,6 +378,10 @@ if (!function_exists('renderSidebarItem')) {
     <div class="px-4 py-3 bg-muco text-white rounded shadow-lg">Action réalisée</div>
 </div>
 
+<form id="logoutForm" method="post" action="<?= htmlspecialchars(app_url('logout.php'), ENT_QUOTES, 'UTF-8') ?>" class="hidden">
+    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
+</form>
+
 <script>
     feather.replace();
 
@@ -515,8 +519,11 @@ if (!function_exists('renderSidebarItem')) {
             reverseButtons: true
         }).then((r) => {
             if (r.isConfirmed) {
-                // En production : window.location.href = "/logout";
-                toast('Déconnexion simulée (test)');
+                localStorage.removeItem('auth_token');
+                localStorage.removeItem('auth_user');
+                sessionStorage.removeItem('auth_token');
+                sessionStorage.removeItem('auth_user');
+                document.getElementById('logoutForm')?.requestSubmit();
             }
         });
     }

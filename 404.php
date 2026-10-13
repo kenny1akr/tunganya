@@ -6,7 +6,8 @@ $basePath = defined('APP_BASE_PATH')
 if ($basePath === '.') {
     $basePath = '';
 }
-$homeUrl = $basePath . '/accueil';
+$role = $_SESSION['role'] ?? '';
+$homeUrl = $basePath . '/' . ($role !== '' ? rawurlencode($role) . '/accueil' : 'auth/');
 ?>
 <!doctype html>
 <html lang="fr">

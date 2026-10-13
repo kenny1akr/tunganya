@@ -232,99 +232,151 @@
 
     </main>
 
-    <!-- JavaScript -->
-    <script>
-        // Année automatique
-        document.getElementById('year').textContent =
-            new Date().getFullYear();
+<!-- JavaScript -->
+<script>
+    // Année automatique
+    document.getElementById('year').textContent = new Date().getFullYear();
 
-        const loginForm = document.getElementById('loginForm');
-        const passwordInput = document.getElementById('password');
-        const togglePassword = document.getElementById('togglePassword');
-        const eyeIcon = document.getElementById('eyeIcon');
-        const message = document.getElementById('message');
-        const loginButton = document.getElementById('loginButton');
+    const loginForm     = document.getElementById('loginForm');
+    const passwordInput = document.getElementById('password');
+    const togglePassword = document.getElementById('togglePassword');
+    const eyeIcon       = document.getElementById('eyeIcon');
+    const message       = document.getElementById('message');
+    const loginButton   = document.getElementById('loginButton');
 
-        // Afficher ou masquer le mot de passe
-        togglePassword.addEventListener('click', function () {
-            const isHidden = passwordInput.type === 'password';
+    // ============================================================
+    // Afficher / masquer mot de passe
+    // ============================================================
+    togglePassword.addEventListener('click', function () {
+        const isHidden = passwordInput.type === 'password';
+        passwordInput.type = isHidden ? 'text' : 'password';
+        togglePassword.setAttribute('aria-label', isHidden ? 'Masquer le mot de passe' : 'Afficher le mot de passe');
+        togglePassword.setAttribute('aria-pressed', String(isHidden));
+        eyeIcon.innerHTML = isHidden
+            ? `<path d="M3 3l18 18"></path><path d="M10.6 10.6a2 2 0 002.8 2.8"></path><path d="M9.9 5.2A10.8 10.8 0 0112 5c6.5 0 10 7 10 7a15 15 0 01-4 4.8"></path><path d="M6.2 6.2C3.5 8 2 12 2 12s3.5 7 10 7a10 10 0 004-.8"></path>`
+            : `<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle>`;
+    });
 
-            passwordInput.type = isHidden ? 'text' : 'password';
+    // ============================================================
+    // Afficher un message
+    // ============================================================
+    function showMessage(text, type = 'error') {
+        message.textContent = text;
+        message.className = 'mb-4 rounded-lg p-3 text-sm ' +
+            (type === 'success'
+                ? 'bg-green-50 text-green-700 border border-green-200'
+                : 'bg-red-50 text-red-700 border border-red-200');
+        message.classList.remove('hidden');
+    }
 
-            togglePassword.setAttribute(
-                'aria-label',
-                isHidden
-                    ? 'Masquer le mot de passe'
-                    : 'Afficher le mot de passe'
-            );
+    function hideMessage() {
+        message.classList.add('hidden');
+    }
 
-            togglePassword.setAttribute(
-                'aria-pressed',
-                String(isHidden)
-            );
+    // ============================================================
+    // Soumission du formulaire → appel à l'API
+    // ============================================================
+    loginForm.addEventListener('submit', async function (event) {
+        event.preventDefault();
+        hideMessage();
 
-            eyeIcon.innerHTML = isHidden
-                ? `
-                    <path d="M3 3l18 18"></path>
-                    <path d="M10.6 10.6a2 2 0 002.8 2.8"></path>
-                    <path d="M9.9 5.2A10.8 10.8 0 0112 5
-                    c6.5 0 10 7 10 7a15 15 0 01-4 4.8"></path>
-                    <path d="M6.2 6.2C3.5 8 2 12 2 12
-                    s3.5 7 10 7a10 10 0 004-.8"></path>
-                  `
-                : `
-                    <path d="M2 12s3.5-7 10-7
-                    10 7 10 7-3.5 7-10 7-10-7-10-7Z"></path>
-                    <circle cx="12" cy="12" r="3"></circle>
-                  `;
-        });
+        const identifier = document.getElementById('identifier').value.trim();
+        const password   = passwordInput.value;
+        const remember   = document.getElementById('remember').checked;
 
-        // Afficher un message
-        function showMessage(text, type = 'error') {
-            message.textContent = text;
-            message.className =
-                'mb-4 rounded-lg p-3 text-sm ' +
-                (type === 'success'
-                    ? 'bg-green-50 text-green-700 border border-green-200'
-                    : 'bg-red-50 text-red-700 border border-red-200');
+        // Validation côté client
+        if (!identifier || !password) {
+            showMessage('Veuillez remplir tous les champs obligatoires.');
+            return;
+        }
+        if (password.length < 6) {
+            showMessage('Le mot de passe doit contenir au moins 6 caractères.');
+            return;
         }
 
-        // Validation du formulaire
-        loginForm.addEventListener('submit', function (event) {
-            event.preventDefault();
+        // Désactiver le bouton
+        loginButton.disabled = true;
+        loginButton.textContent = 'Connexion en cours...';
 
-            const identifier =
-                document.getElementById('identifier').value.trim();
+        try {
+            // ============================================================
+            // APPEL API
+            // ============================================================
+            const response = await fetch('../api/endpoints/auth.php?action=login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    identifier: identifier,
+                    password: password
+                })
+            });
 
-            const password = passwordInput.value;
+            const data = await response.json();
 
-            if (!identifier || !password) {
-                showMessage(
-                    'Veuillez remplir tous les champs obligatoires.'
-                );
+            // ============================================================
+            // ERREUR
+            // ============================================================
+            if (!response.ok || !data.success) {
+                // Gestion des erreurs de validation détaillées
+                if (data.errors) {
+                    const firstError = Object.values(data.errors)[0];
+                    showMessage(firstError || data.message);
+                } else {
+                    showMessage(data.message || 'Erreur de connexion');
+                }
+                loginButton.disabled = false;
+                loginButton.textContent = 'Se connecter';
                 return;
             }
 
-            if (password.length < 6) {
-                showMessage(
-                    'Le mot de passe doit contenir au moins 6 caractères.'
-                );
-                return;
+            // ============================================================
+            // SUCCÈS
+            // ============================================================
+            showMessage('✅ Connexion réussie ! Redirection...', 'success');
+
+            // Sauvegarder le token
+            if (remember) {
+                localStorage.setItem('auth_token', data.data.token);
+                localStorage.setItem('auth_user', JSON.stringify(data.data.user));
+            } else {
+                sessionStorage.setItem('auth_token', data.data.token);
+                sessionStorage.setItem('auth_user', JSON.stringify(data.data.user));
             }
 
-            /*
-             * Démonstration uniquement :
-             * aucune authentification réelle n'est effectuée ici.
-             *
-             * Remplace cette partie par un appel à ton backend PHP.
-             */
-
+            // ============================================================
+            // MESSAGE + REDIRECTION
+            // ============================================================
             showMessage(
-                'Les champs sont valides. Connectez ce formulaire à votre serveur.',
+                `✅ Bienvenue ${data.data.user.full_name} — ${data.data.user.role_label}`,
                 'success'
             );
-        });
-    </script>
+
+            const roleRoutes = {
+                super_admin: 'super_admin/accueil',
+                directeur_general: 'directeur_general/accueil',
+                comptable: 'comptable/accueil',
+                receptionniste: 'receptionniste/accueil',
+                magasinier: 'magasinier/accueil',
+                travailleur: 'travailleur/accueil'
+            };
+            const roleRoute = roleRoutes[data.data.user.role] || 'accueil';
+
+            setTimeout(() => {
+                window.location.href = `../router.php?route=${encodeURIComponent(roleRoute)}`;
+            }, 800);
+
+
+        } catch (error) {
+            console.error('Erreur réseau:', error);
+            showMessage('Erreur de connexion au serveur. Vérifiez votre connexion.');
+            loginButton.disabled = false;
+            loginButton.textContent = 'Se connecter';
+        }
+    });
+</script>
 
 </body>
 </html>

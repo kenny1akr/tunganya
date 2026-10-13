@@ -168,7 +168,7 @@ $currentRoleLabel = getRoleLabel($currentRole);
         <div class="lg:col-span-2 bg-white rounded-xl shadow-card overflow-hidden">
             <div class="px-5 py-4 border-b flex items-center justify-between">
                 <h2 class="font-semibold text-[#0f5132]">Commandes récentes</h2>
-                <a href="<?= htmlspecialchars(app_url('commandes/clients'), ENT_QUOTES, 'UTF-8') ?>" class="text-sm text-muco hover:underline">Voir tout →</a>
+                <a href="<?= htmlspecialchars(app_route_url('commandes/clients'), ENT_QUOTES, 'UTF-8') ?>" class="text-sm text-muco hover:underline">Voir tout →</a>
             </div>
             <div class="overflow-x-auto">
                 <table class="table-row-hover w-full text-sm">
@@ -216,7 +216,7 @@ $currentRoleLabel = getRoleLabel($currentRole);
         <div class="bg-white rounded-xl shadow-card overflow-hidden <?= !userCan($user, 'commandes.view') ? 'lg:col-span-3' : '' ?>">
             <div class="px-5 py-4 border-b flex items-center justify-between">
                 <h2 class="font-semibold text-[#0f5132]">Alertes stock critiques</h2>
-                <a href="<?= htmlspecialchars(app_url('stock/alertes'), ENT_QUOTES, 'UTF-8') ?>" class="text-sm text-muco hover:underline">Détails →</a>
+                <a href="<?= htmlspecialchars(app_route_url('stock/alertes'), ENT_QUOTES, 'UTF-8') ?>" class="text-sm text-muco hover:underline">Détails →</a>
             </div>
             <ul class="divide-y">
                 <?php foreach ($alertesStock as $a): ?>
@@ -272,7 +272,7 @@ $currentRoleLabel = getRoleLabel($currentRole);
         <div class="bg-white rounded-xl shadow-card p-5 <?= !userCan($user, 'rapports.stock') && !userCan($user, 'stock.view') ? 'lg:col-span-3' : '' ?>">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="font-semibold text-[#0f5132]">🎂 Anniversaires à venir</h2>
-                <a href="<?= htmlspecialchars(app_url('anniversaires'), ENT_QUOTES, 'UTF-8') ?>" class="text-xs text-muco hover:underline">Voir tout</a>
+                <a href="<?= htmlspecialchars(app_route_url('anniversaires'), ENT_QUOTES, 'UTF-8') ?>" class="text-xs text-muco hover:underline">Voir tout</a>
             </div>
             <ul class="space-y-3">
                 <?php foreach ($anniversaires as $a): ?>

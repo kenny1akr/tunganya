@@ -69,7 +69,11 @@ $escName   = htmlspecialchars($user["nom_complet"] ?? "Utilisateur", ENT_QUOTES,
 $escRole   = htmlspecialchars(getRoleLabel($user["role_system"] ?? ""), ENT_QUOTES, 'UTF-8');
 $roleColor = getRoleColor($user["role_system"] ?? "");
 $escAvatar = !empty($user["avatar"]) ? htmlspecialchars($user["avatar"], ENT_QUOTES, 'UTF-8') : null;
-$profileUrl = app_url("profile");
+$rolePrefix = !empty($user["role_system"]) ? $user["role_system"] . "/" : "";
+$activeRoute = $rolePrefix !== "" && strpos($route, $rolePrefix) === 0
+    ? substr($route, strlen($rolePrefix))
+    : $route;
+$profileUrl = app_route_url("profile", $user["role_system"] ?? null);
 
 // ============================================================
 // FONCTION DE RENDU DE LA SIDEBAR (avec permissions + route propre)
@@ -93,7 +97,7 @@ if (!function_exists('renderSidebarItem')) {
                 : 'text-white hover:bg-[#C0EBA6] hover:text-slate-900';
             ?>
             <li>
-                <a href="<?= htmlspecialchars(app_url($itemHref), ENT_QUOTES, 'UTF-8') ?>"
+                <a href="<?= htmlspecialchars(app_route_url($itemHref, $user['role_system'] ?? null), ENT_QUOTES, 'UTF-8') ?>"
                    class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition <?= $activeClass ?>">
                     <i data-feather="<?= htmlspecialchars($item['icon']) ?>" class="w-4 h-4 flex-shrink-0"></i>
                     <span class="menu-text"><?= htmlspecialchars($item['label']) ?></span>
@@ -137,7 +141,7 @@ if (!function_exists('renderSidebarItem')) {
                         $subActive = ($subRoute === $currentRoute);
                         ?>
                         <li>
-                            <a href="<?= htmlspecialchars(app_url($subHref), ENT_QUOTES, 'UTF-8') ?>"
+                            <a href="<?= htmlspecialchars(app_route_url($subHref, $user['role_system'] ?? null), ENT_QUOTES, 'UTF-8') ?>"
                                class="block w-full text-left px-3 py-2 rounded <?= $subActive ? 'bg-[#C0EBA6] text-slate-900 font-semibold' : 'text-white hover:bg-[#C0EBA6] hover:text-slate-900' ?>">
                                 <?= htmlspecialchars($sub['label']) ?>
                             </a>
@@ -247,7 +251,7 @@ if (!function_exists('renderSidebarItem')) {
                             </li>
                         <?php endif; ?>
 
-                        <?php foreach ($visibleItems as $item) renderSidebarItem($item, $route, $user); ?>
+                        <?php foreach ($visibleItems as $item) renderSidebarItem($item, $activeRoute, $user); ?>
                     <?php endforeach; ?>
                 <?php endif; ?>
 
@@ -319,17 +323,17 @@ if (!function_exists('renderSidebarItem')) {
                                 <div class="text-xs text-<?= $roleColor ?>-600 font-medium"><?= $escRole ?></div>
                             </div>
                         </div>
-                        <a href="<?= htmlspecialchars(app_url('profile'), ENT_QUOTES, 'UTF-8') ?>" class="flex items-center px-4 py-2 text-sm hover:bg-slate-50">
+                        <a href="<?= htmlspecialchars(app_route_url('profile', $user['role_system'] ?? null), ENT_QUOTES, 'UTF-8') ?>" class="flex items-center px-4 py-2 text-sm hover:bg-slate-50">
                             <i data-feather="user" class="w-4 h-4 mr-2"></i> Mon profil
                         </a>
-                        <a href="<?= htmlspecialchars(app_url('messagerie'), ENT_QUOTES, 'UTF-8') ?>" class="flex items-center px-4 py-2 text-sm hover:bg-slate-50">
+                        <a href="<?= htmlspecialchars(app_route_url('messagerie', $user['role_system'] ?? null), ENT_QUOTES, 'UTF-8') ?>" class="flex items-center px-4 py-2 text-sm hover:bg-slate-50">
                             <i data-feather="message-circle" class="w-4 h-4 mr-2"></i> Messagerie
                         </a>
-                        <a href="<?= htmlspecialchars(app_url('rappels'), ENT_QUOTES, 'UTF-8') ?>" class="flex items-center px-4 py-2 text-sm hover:bg-slate-50">
+                        <a href="<?= htmlspecialchars(app_route_url('rappels', $user['role_system'] ?? null), ENT_QUOTES, 'UTF-8') ?>" class="flex items-center px-4 py-2 text-sm hover:bg-slate-50">
                             <i data-feather="bell" class="w-4 h-4 mr-2"></i> Rappels & alertes
                         </a>
                         <?php if (userCan($user, 'utilisateurs.roles')): ?>
-                            <a href="<?= htmlspecialchars(app_url('parametres'), ENT_QUOTES, 'UTF-8') ?>" class="flex items-center px-4 py-2 text-sm hover:bg-slate-50">
+                            <a href="<?= htmlspecialchars(app_route_url('parametres', $user['role_system'] ?? null), ENT_QUOTES, 'UTF-8') ?>" class="flex items-center px-4 py-2 text-sm hover:bg-slate-50">
                                 <i data-feather="settings" class="w-4 h-4 mr-2"></i> Paramètres
                             </a>
                         <?php endif; ?>

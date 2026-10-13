@@ -1,0 +1,17 @@
+# Configuration locale
+/api/config.local.php
+/logs/*.log
+/logs/*.txt
+
+# Uploads utilisateurs
+/uploads/*
+!/uploads/.gitkeep
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db

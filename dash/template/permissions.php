@@ -75,6 +75,7 @@ $ROLES = [
             "dashboard.view",
             "caisse.view", "caisse.operations",
             "factures.view", "factures.create", "factures.print",
+            "ventes.create",
             "commandes.view", "commandes.clients", "commandes.create",
             "livraisons.view",
             "offres.view",

@@ -56,7 +56,10 @@ unset($_SESSION['flash_message']);
     <header class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div><p class="text-sm font-semibold text-green-800">Commandes clients</p><h1 class="mt-1 text-2xl font-bold text-slate-900">Suivi des commandes</h1><p class="mt-1 text-sm text-slate-600"><?= number_format($totalOrders, 0, ',', ' ') ?> commande(s)</p></div>
         <?php if (userCan($user, 'commandes.create')): ?>
-            <a href="<?= $escape(app_route_url('commandes/nouvelle')) ?>" class="inline-flex items-center justify-center gap-2 rounded-md bg-green-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-green-800"><i data-feather="plus" class="h-4 w-4"></i> Nouvelle commande</a>
+            <div class="flex gap-2">
+                <?php if (userCan($user, 'ventes.create')): ?><a href="<?= $escape(app_route_url('ventes/nouvelle')) ?>" class="inline-flex items-center justify-center gap-2 rounded-md bg-green-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-green-800"><i data-feather="shopping-cart" class="h-4 w-4"></i> Vente comptoir</a><?php endif; ?>
+                <a href="<?= $escape(app_route_url('commandes/nouvelle')) ?>" class="inline-flex items-center justify-center gap-2 rounded-md border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"><i data-feather="clipboard" class="h-4 w-4"></i> Commande à préparer</a>
+            </div>
         <?php endif; ?>
     </header>
 

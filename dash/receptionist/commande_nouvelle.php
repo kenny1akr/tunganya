@@ -167,7 +167,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <section class="mx-auto max-w-4xl space-y-5">
     <header>
         <a href="<?= $escape(app_route_url('commandes/clients')) ?>" class="inline-flex items-center gap-2 text-sm font-medium text-green-800 hover:underline"><i data-feather="arrow-left" class="h-4 w-4"></i> Commandes clients</a>
-        <div class="mt-3"><h1 class="text-2xl font-bold text-slate-900">Nouvelle commande</h1><p class="mt-1 text-sm text-slate-600">Les prix sont repris du catalogue actuel. Le stock ne sera sorti qu’à la livraison.</p></div>
+        <div class="mt-3"><h1 class="text-2xl font-bold text-slate-900">Nouvelle commande à préparer</h1><p class="mt-1 text-sm text-slate-600">Cette commande ne diminue pas le stock et ne génère pas d’encaissement. Pour une vente immédiate, utilisez Vente comptoir.</p></div>
     </header>
 
     <?php if ($errors): ?>

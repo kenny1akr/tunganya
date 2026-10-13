@@ -5,10 +5,10 @@ require_once __DIR__ . '/../../api/database.php'; require_once __DIR__ . '/_fina
 $db=Database::getInstance(); $role=$user['role_system'];
 $from=(string)($_GET['du']??date('Y-m-01')); $to=(string)($_GET['au']??date('Y-m-d')); $search=trim((string)($_GET['q']??'')); $type=(string)($_GET['type']??'');
 if(!financeValidDate($from))$from=date('Y-m-01'); if(!financeValidDate($to))$to=date('Y-m-d'); if($from>$to)[$from,$to]=[$to,$from];
-$validTypes=['Vente','Entrée manuelle','Sortie caisse']; if(!in_array($type,$validTypes,true))$type='';
+$validTypes=['Vente comptoir','Entrée manuelle','Sortie caisse']; if(!in_array($type,$validTypes,true))$type='';
 $union="SELECT operation_date, operation_type, reference, description, amount, payment_info FROM (
-    SELECT date AS operation_date, 'Vente' AS operation_type, invoice_number AS reference, client_name AS description, total_amount AS amount, payment_method AS payment_info FROM sales WHERE status = 'Active'
-    UNION ALL SELECT date_created AS operation_date, 'Entrée manuelle' AS operation_type, COALESCE(reference,'') AS reference, trans_motive AS description, amount AS amount, 'Encaissement libre' AS payment_info FROM cash_in
+    SELECT date AS operation_date, 'Vente comptoir' AS operation_type, invoice_number AS reference, client_name AS description, netcash AS amount, payment_method AS payment_info FROM sales WHERE status = 'Active' AND origin = 'Vente comptoir' AND payment_method = 'Espèces' AND netcash > 0
+    UNION ALL SELECT date_created AS operation_date, 'Entrée manuelle' AS operation_type, COALESCE(reference,'') AS reference, trans_motive AS description, amount AS amount, 'Encaissement libre' AS payment_info FROM cash_in WHERE NOT EXISTS (SELECT 1 FROM sales WHERE sales.invoice_number = cash_in.reference AND sales.origin = 'Vente comptoir' AND sales.payment_method = 'Espèces')
     UNION ALL SELECT created_at AS operation_date, 'Sortie caisse' AS operation_type, CAST(id AS CHAR) AS reference, COALESCE(reason,cashout_type) AS description, amount AS amount, cashout_type AS payment_info FROM cash_out
 ) AS finance_ops";
 $conditions=['operation_date BETWEEN ? AND ?']; $params=[$from,$to];
@@ -16,7 +16,7 @@ if($type!==''){$conditions[]='operation_type = ?';$params[]=$type;}
 if($search!==''){$conditions[]='(reference LIKE ? OR description LIKE ? OR payment_info LIKE ?)';$p='%'.$search.'%';array_push($params,$p,$p,$p);}
 $where=' WHERE '.implode(' AND ',$conditions);
 $total=(int)$db->fetchColumn("SELECT COUNT(*) FROM ($union) AS all_ops$where",$params);
-$totals=$db->fetch("SELECT COALESCE(SUM(CASE WHEN operation_type IN ('Vente','Entrée manuelle') THEN amount ELSE 0 END),0) AS total_in, COALESCE(SUM(CASE WHEN operation_type = 'Sortie caisse' THEN amount ELSE 0 END),0) AS total_out FROM ($union) AS all_ops WHERE operation_date BETWEEN ? AND ?",[$from,$to]);
+$totals=$db->fetch("SELECT COALESCE(SUM(CASE WHEN operation_type IN ('Vente comptoir','Entrée manuelle') THEN amount ELSE 0 END),0) AS total_in, COALESCE(SUM(CASE WHEN operation_type = 'Sortie caisse' THEN amount ELSE 0 END),0) AS total_out FROM ($union) AS all_ops WHERE operation_date BETWEEN ? AND ?",[$from,$to]);
 $page=max(1,(int)($_GET['page']??1));$perPage=25;$pages=max(1,(int)ceil($total/$perPage));$page=min($page,$pages);$offset=($page-1)*$perPage;
 $operations=$db->fetchAll("SELECT * FROM ($union) AS all_ops$where ORDER BY operation_date DESC, reference DESC LIMIT $perPage OFFSET $offset",$params);
 $flash=$_SESSION['flash_message']??null;unset($_SESSION['flash_message']);

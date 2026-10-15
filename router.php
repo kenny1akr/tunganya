@@ -71,6 +71,8 @@ $ROUTE_DEFINITIONS = [
     "stock/entrees"        => ["./dash/magasinier/stock_entree.php",         "flux.entrees",         "Entrée de stock"],
     "stock/sorties"        => ["./dash/magasinier/stock_sortie.php",         "flux.sorties",         "Sortie de stock"],
     "stock/alertes"        => ["./dash/magasinier/stock_alertes.php",        "stock.alertes",        "Alertes seuils"],
+    "stock/categories" => ["./dash/magasinier/stock_categories.php", "stock.categories", "Catégories de stock"],
+    "stock/sorties-clients" => ["./dash/magasinier/stock_sortie_client.php", "flux.sorties.client", "Sortie client"],
     "stock/reconciliation" => ["./dash/magasinier/stock_reconciliation.php", "stock.reconciliation", "Réconciliation stock"],
 
     // --- Flux ---
@@ -89,6 +91,7 @@ $ROUTE_DEFINITIONS = [
     "ventes/nouvelle" => ["./dash/receptionist/vente_nouvelle.php", "ventes.create", "Vente comptoir"],
     "ventes/factures" => ["./dash/receptionist/ventes_liste.php",   "factures.view", "Factures de vente"],
     "ventes/facture"  => ["./dash/receptionist/facture.php",        "factures.view", "Facture de vente"],
+    "ventes/factures-attente" => ["./dash/receptionist/factures_attente.php", "factures.view", "Factures en attente"],
 
     // --- Banque ---
     "banque"                => ["./dash/admin/banque_comptes.php",       "banque.view",          "Comptes bancaires"],

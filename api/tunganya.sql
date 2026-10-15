@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Oct 13, 2026 at 06:21 PM
+-- Generation Time: Oct 13, 2026 at 04:54 PM
 -- Server version: 10.4.28-MariaDB
 -- PHP Version: 8.2.4
 
@@ -618,9 +618,7 @@ INSERT INTO `logintos` (`id`, `user_id`, `action_type`, `session_id`, `ip_adress
 (16, 'admin', 'Connexion au système', '-', '::1', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36', 'Succès - 13/10/2026 14:36', '2026-10-13 12:36:28'),
 (17, 'kamana', 'Connexion au système', '-', '::1', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36', 'Succès - 13/10/2026 15:10', '2026-10-13 13:10:23'),
 (18, 'admin', 'Connexion au système', '-', '::1', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36', 'Succès - 13/10/2026 15:33', '2026-10-13 13:33:49'),
-(19, 'kamana', 'Connexion au système', '-', '::1', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36', 'Succès - 13/10/2026 16:52', '2026-10-13 14:52:47'),
-(20, 'admin', 'Connexion au système', '-', '::1', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36', 'Succès - 13/10/2026 18:09', '2026-10-13 16:09:51'),
-(21, 'akimana', 'Connexion au système', '-', '::1', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36', 'Succès - 13/10/2026 18:12', '2026-10-13 16:12:15');
+(19, 'kamana', 'Connexion au système', '-', '::1', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36', 'Succès - 13/10/2026 16:52', '2026-10-13 14:52:47');
 
 -- --------------------------------------------------------
 
@@ -1315,10 +1313,9 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `profil`, `user_name`, `password`, `secret_code`, `category`, `f_name`, `l_name`, `telephone`, `email`, `adress`, `level`, `salary`, `status`, `session_id`, `admission`, `reset_token`, `token_expiry`, `jwt_secret`, `last_login`, `failed_attempts`, `locked_until`, `created_at`, `updated_at`) VALUES
-(1, '', 'admin', '$2a$12$KzBU76x51ZEI6NtR9FvLzePaB3xy57aT8y356n4V.qoV3eDQbkp3i', NULL, 'Super Admin', 'Super', 'Admin', '00000000', 'admin@dh.bi', '', 'Dev', 0, 'Disponible', '90f1f02bc7a94f5fce1798fc43b987f6', '2026-10-12', NULL, '2026-10-12 21:27:21', NULL, '2026-10-13 18:09:51', 0, NULL, '2026-10-12 21:27:21', '2026-10-13 16:09:51'),
+(1, '', 'admin', '$2a$12$KzBU76x51ZEI6NtR9FvLzePaB3xy57aT8y356n4V.qoV3eDQbkp3i', NULL, 'Super Admin', 'Super', 'Admin', '00000000', 'admin@dh.bi', '', 'Dev', 0, 'Disponible', '7cbbe609ed557eb8a199c9f980df400f', '2026-10-12', NULL, '2026-10-12 21:27:21', NULL, '2026-10-13 15:33:49', 0, NULL, '2026-10-12 21:27:21', '2026-10-13 13:33:49'),
 (2, '', 'kemal', '$2y$10$3/Nxsl7diaGEzC9x.ayXB.wKujk2iVBVCf48KHTb92PlNAvC9zblG', NULL, 'receptionniste', 'kemal', 'NDAYISABA', '+25767530006', 'kemal@dh.bi', '', 'Réceptionniste', 0, 'Disponible', 'c2d909d8a32d09105aeba97ab20dc816', '2026-10-13', NULL, '2026-10-13 01:18:01', NULL, '2026-10-13 14:30:30', 0, NULL, '2026-10-12 23:18:01', '2026-10-13 12:30:30'),
-(3, '', 'kamana', '$2y$10$pNxn0ZmYZTkbZ.FUPEvOXOnVzolkKj6fwPaSWjRfdW53BeSWkts9C', NULL, 'magasinier', 'KAMANA', 'Holy', NULL, 'kamana@dh.bi', '', 'Magasinier', 0, 'Disponible', 'dc4daa32841cfefb7ef64cfbe64786d6', '2026-10-13', NULL, '2026-10-13 02:18:07', NULL, '2026-10-13 16:52:47', 0, NULL, '2026-10-13 00:18:07', '2026-10-13 14:52:47'),
-(4, '', 'akimana', '$2y$10$Ay6XeM/9KE2C3wT/TtVyr.vTJTO9ZwK1gVWAwbsLBk9eS.zy7xoDO', NULL, 'comptable', 'AKIMANA', 'Cynthia', NULL, 'akimana@gmail.com', '', 'Comptable', 0, 'Disponible', '3dc23a67a3aee0a0cfc626e5543d7268', '2026-10-13', NULL, '2026-10-13 18:11:33', NULL, '2026-10-13 18:12:15', 0, NULL, '2026-10-13 16:11:33', '2026-10-13 16:12:15');
+(3, '', 'kamana', '$2y$10$pNxn0ZmYZTkbZ.FUPEvOXOnVzolkKj6fwPaSWjRfdW53BeSWkts9C', NULL, 'magasinier', 'KAMANA', 'Holy', NULL, 'kamana@dh.bi', '', 'Magasinier', 0, 'Disponible', 'dc4daa32841cfefb7ef64cfbe64786d6', '2026-10-13', NULL, '2026-10-13 02:18:07', NULL, '2026-10-13 16:52:47', 0, NULL, '2026-10-13 00:18:07', '2026-10-13 14:52:47');
 
 -- --------------------------------------------------------
 
@@ -2035,7 +2032,7 @@ ALTER TABLE `licenses`
 -- AUTO_INCREMENT for table `logintos`
 --
 ALTER TABLE `logintos`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- AUTO_INCREMENT for table `logs`
@@ -2179,7 +2176,7 @@ ALTER TABLE `units`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(100) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(100) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `user_sound_settings`

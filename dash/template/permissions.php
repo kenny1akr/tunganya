@@ -96,8 +96,8 @@ $ROLES = [
         "color"       => "blue",
         "permissions" => [
             "dashboard.view",
-            "stock.view", "stock.create", "stock.edit", "stock.mouvements", "stock.alertes", "stock.reconciliation",
-            "flux.entrees", "flux.sorties",
+            "stock.view", "stock.create", "stock.edit", "stock.categories", "stock.mouvements", "stock.alertes", "stock.reconciliation",
+            "flux.entrees", "flux.sorties", "flux.sorties.client",
             "livraisons.view", "livraisons.create", "livraisons.print",
             "commandes.view", "commandes.fournisseurs",
             "fournisseurs.view",

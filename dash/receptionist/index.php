@@ -222,6 +222,18 @@ $priorityColor = static function (string $p): string {
 
 $firstName = trim(explode(' ', trim($user['nom_complet'] ?? ''))[0] ?? '');
 if ($firstName === '') $firstName = 'collègue';
+
+$pendingStockInvoices = 0;
+try {
+    $pendingStockInvoices = (int) $db->fetchColumn(
+        "SELECT COUNT(*) FROM sales
+         WHERE document_type = 'Commande'
+           AND origin = 'Sortie client magasin'
+           AND status = 'Active'"
+    );
+} catch (Throwable $e) {
+    error_log('kpi pendingStockInvoices: ' . $e->getMessage());
+}
 ?>
 <section class="space-y-5">
 
@@ -247,6 +259,12 @@ if ($firstName === '') $firstName = 'collègue';
                 <a href="<?= $escape(app_route_url('ventes/nouvelle')) ?>"
                    class="inline-flex items-center gap-2 rounded-md border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">
                     <i class="fa-solid fa-cart-shopping"></i> Vente comptoir
+                </a>
+            <?php endif; ?>
+            <?php if (userCan($user, 'factures.view')): ?>
+                <a href="<?= $escape(app_route_url('ventes/factures-attente')) ?>"
+                   class="inline-flex items-center gap-2 rounded-md border border-amber-300 bg-amber-50 px-4 py-2.5 text-sm font-semibold text-amber-900 hover:bg-amber-100">
+                    <i class="fa-solid fa-clock"></i> Factures à établir (<?= number_format($pendingStockInvoices, 0, ',', ' ') ?>)
                 </a>
             <?php endif; ?>
         </div>

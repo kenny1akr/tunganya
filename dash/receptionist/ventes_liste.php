@@ -3,7 +3,7 @@ if (!defined('ROUTER_LOADED')) { http_response_code(403); exit('Accès direct in
 if (!userCan($user, 'factures.view')) { http_response_code(403); echo '<div class="rounded-md border border-red-200 bg-red-50 p-4 text-red-700">Accès refusé.</div>'; return; }
 require_once __DIR__ . '/../../api/database.php'; require_once __DIR__ . '/_sales.php';
 $db=Database::getInstance();$role=$user['role_system'];$search=trim((string)($_GET['q']??''));$from=(string)($_GET['du']??'');$to=(string)($_GET['au']??'');
-$conditions=["document_type = 'Facture'", "origin = 'Vente comptoir'", "status = 'Active'"];$params=[];
+$conditions=["document_type = 'Facture'", "origin IN ('Vente comptoir', 'Sortie client magasin')", "status = 'Active'"];$params=[];
 if($search!==''){$conditions[]='(invoice_number LIKE ? OR client_name LIKE ? OR phone LIKE ?)';$p='%'.$search.'%';array_push($params,$p,$p,$p);}
 if($from!==''&&receptionValidDate($from)){$conditions[]='date >= ?';$params[]=$from;}else{$from='';}
 if($to!==''&&receptionValidDate($to)){$conditions[]='date <= ?';$params[]=$to;}else{$to='';}

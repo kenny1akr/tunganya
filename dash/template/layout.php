@@ -321,7 +321,7 @@ if (!function_exists('renderSidebarItem')) {
     </aside>
 
     <!-- ==================== MAIN ==================== -->
-    <div id="mainArea" class="flex-1 flex flex-col min-h-0 ml-0 lg:ml-72 anim-smooth">
+    <div id="mainArea" class="w-0 min-w-0 flex-1 flex flex-col min-h-0 ml-0 lg:ml-72 anim-smooth">
 
         <!-- TOP NAV -->
         <header class="flex items-center justify-between gap-4 px-4 py-3 border-b bg-white shadow-sm">
@@ -409,7 +409,7 @@ if (!function_exists('renderSidebarItem')) {
         </header>
 
         <!-- CONTENT -->
-        <main id="content" class="flex-1 overflow-auto p-4">
+        <main id="content" class="min-w-0 flex-1 overflow-x-hidden overflow-y-auto p-4">
             <?php
             if (isset($content) && $content !== '') {
                 echo $content;

@@ -44,7 +44,7 @@ $clients = $db->fetchAll(
 
 $products = $db->fetchAll(
     "SELECT id, medicine_name, actual_quantity, sell_type, selling_price
-     FROM stock WHERE status = 'Disponible' AND actual_quantity > 0 ORDER BY medicine_name"
+     FROM stock WHERE is_archived = 0 AND status = 'Disponible' AND actual_quantity > 0 ORDER BY medicine_name"
 );
 
 // Valeurs du formulaire
@@ -172,7 +172,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
         $seenProductIds[$productId] = true;
 
         $product = $db->fetch(
-            "SELECT id, medicine_name, sell_type, selling_price FROM stock WHERE id = ? LIMIT 1",
+            "SELECT id, medicine_name, sell_type, selling_price FROM stock WHERE id = ? AND is_archived = 0 LIMIT 1",
             [$productId]
         );
         if (!$product) { $errors[] = 'Produit introuvable.'; continue; }

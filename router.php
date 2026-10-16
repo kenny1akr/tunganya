@@ -68,6 +68,7 @@ $ROUTE_DEFINITIONS = [
     "stock"                => ["./dash/magasinier/stocks.php",               "stock.view",           "Gestion de stock"],
     "stock/mouvements"     => ["./dash/magasinier/stock_mouvements.php",     "stock.mouvements",     "Mouvements produits"],
     "stock/ajouter"        => ["./dash/magasinier/produit_ajouter.php",      "stock.create",         "Ajouter un produit"],
+    "stock/modifier"       => ["./dash/magasinier/produit_modifier.php",    "stock.edit",           "Modifier un produit"],
     "stock/entrees"        => ["./dash/magasinier/stock_entree.php",         "flux.entrees",         "Entrée de stock"],
     "stock/sorties"        => ["./dash/magasinier/stock_sortie.php",         "flux.sorties",         "Sortie de stock"],
     "stock/alertes"        => ["./dash/magasinier/stock_alertes.php",        "stock.alertes",        "Alertes seuils"],

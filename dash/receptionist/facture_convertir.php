@@ -66,11 +66,11 @@ try {
         }
         if (!isset($productsById[$stockId])) {
             $locked = $db->query(
-                "SELECT id, medicine_name, category, actual_quantity, used_quantity, actual_price, selling_price, sell_type, status
+                "SELECT id, medicine_name, category, actual_quantity, used_quantity, actual_price, selling_price, sell_type, status, is_archived
                  FROM stock WHERE id = ? FOR UPDATE",
                 [$stockId]
             )->fetch();
-            if (!$locked || $locked['status'] !== 'Disponible') {
+            if (!$locked || $locked['status'] !== 'Disponible' || (int) $locked['is_archived'] === 1) {
                 throw new RuntimeException('Produit introuvable ou indisponible : ' . ($item['name'] ?? ''));
             }
             $productsById[$stockId] = $locked;

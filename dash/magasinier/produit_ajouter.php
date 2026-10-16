@@ -7,7 +7,8 @@ $db = Database::getInstance();
 $role = $user['role_system'];
 $errors = [];
 $values = ['medicine_name'=>'','bar_code'=>'0','category'=>'','shelf'=>'','sell_type'=>'','quantity'=>'0','actual_price'=>'0','selling_price'=>'0','seuil'=>'3','expire_date'=>''];
-$categoryOptions = $db->fetchAll('SELECT c.category, u.code AS unit_code, u.label AS unit_label, u.symbol AS unit_symbol FROM cat_prod c LEFT JOIN units u ON u.id = c.default_unit_id WHERE c.status = 1 ORDER BY c.category');
+$hasCategoryIcon = inventoryCategoryIconColumnExists($db);
+$categoryOptions = $db->fetchAll('SELECT c.id AS category_id, c.category, ' . ($hasCategoryIcon ? 'c.icon' : "'tag' AS icon") . ', u.code AS unit_code, u.label AS unit_label, u.symbol AS unit_symbol FROM cat_prod c LEFT JOIN units u ON u.id = c.default_unit_id WHERE c.status = 1 ORDER BY c.category');
 $categories = array_column($categoryOptions, 'category');
 $units = array_column($db->fetchAll('SELECT category FROM sell_type WHERE status = 1 ORDER BY category'), 'category');
 if (!$units) $units = ['piece', 'm', 'rouleau', 'Forfait'];
@@ -34,9 +35,9 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
         $db->getPdo()->beginTransaction();
         try {
             $db->execute(
-                "INSERT INTO stock (bar_code, medicine_name, category, shelf, registered_quantity, used_quantity, actual_quantity, register_date, expire_date, sell_type, origin, actual_price, selling_price, profit_price, status, inventory, seuil)
-                 VALUES (?, ?, ?, ?, ?, 0, ?, CURDATE(), ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                [(int)$values['bar_code'], $values['medicine_name'], $values['category'], $values['shelf'], $quantity, $quantity, $values['expire_date'] ?: null, $values['sell_type'], 'Ajout manuel', $cost, $selling, $selling-$cost, $quantity > 0 ? 'Disponible' : 'Rupture', $quantity, (float)$values['seuil']]
+                "INSERT INTO stock (bar_code, medicine_name, category, category_id, shelf, registered_quantity, used_quantity, actual_quantity, register_date, expire_date, sell_type, origin, actual_price, selling_price, profit_price, status, is_archived, inventory, seuil)
+                 VALUES (?, ?, ?, ?, ?, ?, 0, ?, CURDATE(), ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)",
+                [(int)$values['bar_code'], $values['medicine_name'], $values['category'], (int) array_column($categoryOptions, 'category_id', 'category')[$values['category']], $values['shelf'], $quantity, $quantity, $values['expire_date'] ?: null, $values['sell_type'], 'Ajout manuel', $cost, $selling, $selling-$cost, $quantity > 0 ? 'Disponible' : 'Rupture', $quantity, (float)$values['seuil']]
             );
             $productId = (int)$db->getPdo()->lastInsertId();
             if ($quantity > 0) {
@@ -66,7 +67,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
     <form method="post" class="space-y-5 rounded-md border border-slate-200 bg-white p-5 sm:p-6"><input type="hidden" name="csrf_token" value="<?= inventoryEscape($_SESSION['csrf_token']) ?>">
         <div class="grid gap-4 sm:grid-cols-2">
             <label class="space-y-1 text-sm font-medium text-slate-700 sm:col-span-2">Nom du produit <span class="text-red-600">*</span><input name="medicine_name" maxlength="100" required value="<?= inventoryEscape($values['medicine_name']) ?>" class="w-full rounded-md border border-slate-300 px-3 py-2.5 font-normal"></label>
-            <label class="space-y-1 text-sm font-medium text-slate-700">Catégorie <select name="category" id="productCategory" required class="w-full rounded-md border border-slate-300 bg-white px-3 py-2.5 font-normal"><option value="">Choisir</option><?php foreach ($categoryOptions as $option): $defaultUnits = array_values(array_filter([$option['unit_label'], $option['unit_symbol'], $option['unit_code']])); ?><option value="<?= inventoryEscape($option['category']) ?>" data-default-units="<?= inventoryEscape(json_encode($defaultUnits, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)) ?>" <?= $values['category']===$option['category']?'selected':'' ?>><?= inventoryEscape($option['category']) ?></option><?php endforeach; ?></select></label>
+            <label class="space-y-1 text-sm font-medium text-slate-700">Catégorie <select name="category" id="productCategory" required class="w-full rounded-md border border-slate-300 bg-white px-3 py-2.5 font-normal"><option value="">Choisir</option><?php foreach ($categoryOptions as $option): $defaultUnits = array_values(array_filter([$option['unit_label'], $option['unit_symbol'], $option['unit_code']])); ?><option value="<?= inventoryEscape($option['category']) ?>" data-default-units="<?= inventoryEscape(json_encode($defaultUnits, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)) ?>" <?= $values['category']===$option['category']?'selected':'' ?>><?= ['printer'=>'&#x25A3;','image'=>'&#x25A7;','roll'=>'&#x25A4;','tool'=>'&#x2699;','ink'=>'&#x25C9;','truck'=>'&#x25B0;','box'=>'&#x25A1;','tag'=>'&#x25C6;'][$option['icon'] ?? 'tag'] ?? '&#x25C6;' ?> <?= inventoryEscape($option['category']) ?></option><?php endforeach; ?></select></label>
             <label class="space-y-1 text-sm font-medium text-slate-700">Unité <select name="sell_type" required class="w-full rounded-md border border-slate-300 bg-white px-3 py-2.5 font-normal"><option value="">Choisir</option><?php foreach ($units as $option): ?><option value="<?= inventoryEscape($option) ?>" <?= $values['sell_type']===$option?'selected':'' ?>><?= inventoryEscape($option) ?></option><?php endforeach; ?></select></label>
             <label class="space-y-1 text-sm font-medium text-slate-700">Code-barres<input name="bar_code" type="number" min="0" step="1" value="<?= inventoryEscape($values['bar_code']) ?>" class="w-full rounded-md border border-slate-300 px-3 py-2.5 font-normal"></label>
             <label class="space-y-1 text-sm font-medium text-slate-700">Emplacement<input name="shelf" maxlength="255" value="<?= inventoryEscape($values['shelf']) ?>" placeholder="Rayon, étagère…" class="w-full rounded-md border border-slate-300 px-3 py-2.5 font-normal"></label>

@@ -22,7 +22,7 @@ $bankId = (int) ($_POST['bank_id'] ?? 0);
 $paidInput = trim((string) ($_POST['paid_amount'] ?? ''));
 $allowedPaymentMethods = ['Espèces', 'Virement bancaire', 'À crédit'];
 $clients = $db->fetchAll("SELECT id, name, phone FROM partners WHERE category = 'client' ORDER BY name");
-$products = $db->fetchAll("SELECT id, medicine_name, actual_quantity, sell_type, selling_price FROM stock WHERE status = 'Disponible' AND actual_quantity > 0 ORDER BY medicine_name");
+$products = $db->fetchAll("SELECT id, medicine_name, actual_quantity, sell_type, selling_price FROM stock WHERE is_archived = 0 AND status = 'Disponible' AND actual_quantity > 0 ORDER BY medicine_name");
 $banks = $db->fetchAll("SELECT id, bank_name, account_number, balance, currency FROM banks WHERE currency = 'FBu' ORDER BY bank_name");
 receptionEnsureCsrf();
 
@@ -124,8 +124,8 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                 $idsToLock = array_column($lineInputs, 'id');
                 sort($idsToLock, SORT_NUMERIC);
                 foreach ($idsToLock as $idToLock) {
-                    $lockedProduct = $db->query("SELECT id, medicine_name, category, actual_quantity, used_quantity, actual_price, selling_price, sell_type, status FROM stock WHERE id = ? FOR UPDATE", [$idToLock])->fetch();
-                    if (!$lockedProduct || $lockedProduct['status'] !== 'Disponible') {
+                    $lockedProduct = $db->query("SELECT id, medicine_name, category, actual_quantity, used_quantity, actual_price, selling_price, sell_type, status, is_archived FROM stock WHERE id = ? FOR UPDATE", [$idToLock])->fetch();
+                    if (!$lockedProduct || $lockedProduct['status'] !== 'Disponible' || (int) $lockedProduct['is_archived'] === 1) {
                         throw new RuntimeException('Un des produits n’est plus disponible. Actualisez la page puis recommencez.');
                     }
                     $productsById[(int) $idToLock] = $lockedProduct;

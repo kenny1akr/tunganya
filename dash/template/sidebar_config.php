@@ -28,7 +28,7 @@ $SIDEBAR_CONFIG = [
                 "icon"       => "database",
                 "permission" => "stock.view",
                 "items"      => [
-                    ["label" => "Vue d'ensemble",      "href" => "/stock",                 "permission" => "stock.view"],
+                    ["label" => "Produits et stocks",   "href" => "/stock",                 "permission" => "stock.view"],
                     ["label" => "Catégories",          "href" => "/stock/categories",      "permission" => "stock.categories"],
                     ["label" => "Ajouter un produit",  "href" => "/stock/ajouter",         "permission" => "stock.create"],
                     ["label" => "Entrée de stock",     "href" => "/stock/entrees",         "permission" => "flux.entrees"],

@@ -12,13 +12,13 @@ if (!userCan($user, 'dashboard.view')) {
 require_once __DIR__ . '/../../api/database.php';
 require_once __DIR__ . '/_inventory.php';
 $db = Database::getInstance();
-$totalProducts = (int) $db->fetchColumn('SELECT COUNT(*) FROM stock');
-$unitGroups = $db->fetchAll("SELECT sell_type, COALESCE(SUM(actual_quantity), 0) AS quantity FROM stock GROUP BY sell_type ORDER BY sell_type");
-$lowStockCount = (int) $db->fetchColumn('SELECT COUNT(*) FROM stock WHERE actual_quantity > 0 AND actual_quantity <= seuil');
-$outOfStockCount = (int) $db->fetchColumn('SELECT COUNT(*) FROM stock WHERE actual_quantity <= 0');
+$totalProducts = (int) $db->fetchColumn('SELECT COUNT(*) FROM stock WHERE is_archived = 0');
+$unitGroups = $db->fetchAll("SELECT sell_type, COALESCE(SUM(actual_quantity), 0) AS quantity FROM stock WHERE is_archived = 0 GROUP BY sell_type ORDER BY sell_type");
+$lowStockCount = (int) $db->fetchColumn('SELECT COUNT(*) FROM stock WHERE is_archived = 0 AND actual_quantity > 0 AND actual_quantity <= seuil');
+$outOfStockCount = (int) $db->fetchColumn('SELECT COUNT(*) FROM stock WHERE is_archived = 0 AND actual_quantity <= 0');
 $todayEntries = (int) $db->fetchColumn("SELECT COUNT(*) FROM stock_movements WHERE movement_type = 'entree' AND created_at >= CURDATE() AND created_at < CURDATE() + INTERVAL 1 DAY");
 $todayExits = (int) $db->fetchColumn("SELECT COUNT(*) FROM stock_movements WHERE movement_type = 'sortie' AND created_at >= CURDATE() AND created_at < CURDATE() + INTERVAL 1 DAY");
-$stockAlerts = $db->fetchAll('SELECT id, medicine_name, actual_quantity, seuil, sell_type FROM stock WHERE actual_quantity <= seuil ORDER BY actual_quantity ASC, medicine_name LIMIT 6');
+$stockAlerts = $db->fetchAll('SELECT id, medicine_name, actual_quantity, seuil, sell_type FROM stock WHERE is_archived = 0 AND actual_quantity <= seuil ORDER BY actual_quantity ASC, medicine_name LIMIT 6');
 $recentMovements = $db->fetchAll(
     'SELECT m.product_name, m.movement_type, m.quantity, m.quantity_before, m.quantity_after, m.operator, m.created_at, s.sell_type
      FROM stock_movements m LEFT JOIN stock s ON s.id = m.product_id ORDER BY m.id DESC LIMIT 8'

@@ -48,7 +48,7 @@ $clients = $db->fetchAll(
 $products = $db->fetchAll(
     "SELECT id, medicine_name, actual_quantity, sell_type, selling_price
      FROM stock
-     WHERE status = 'Disponible' AND actual_quantity > 0
+     WHERE is_archived = 0 AND status = 'Disponible' AND actual_quantity > 0
      ORDER BY medicine_name"
 );
 
@@ -237,7 +237,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
 
         $product = $db->fetch(
             "SELECT id, medicine_name, actual_quantity, sell_type, selling_price
-             FROM stock WHERE id = ? AND status = 'Disponible' LIMIT 1",
+             FROM stock WHERE id = ? AND is_archived = 0 AND status = 'Disponible' LIMIT 1",
             [$productId]
         );
         if (!$product) {

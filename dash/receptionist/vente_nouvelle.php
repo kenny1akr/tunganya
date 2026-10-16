@@ -100,6 +100,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                 foreach ($lockedItems as $lockedItem) {
                     $productId = (int) ($lockedItem['stock_id'] ?? 0);
                     $quantity = $lockedItem['quantity'] ?? null;
+                    $unitPrice = $lockedItem['unit_price'] ?? null;
                     if ($productId <= 0 || !is_numeric($quantity) || !is_finite((float) $quantity) || (float) $quantity <= 0 || isset($productsById[$productId])) {
                         throw new RuntimeException('Les articles de cette sortie client sont invalides.');
                     }
@@ -110,7 +111,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                         'actual_quantity' => (float) $quantity,
                         'used_quantity' => 0,
                         'actual_price' => (float) ($lockedItem['unit_cost'] ?? 0),
-                        'selling_price' => (float) ($lockedItem['unit_price'] ?? 0),
+                        'selling_price' => (float) $unitPrice,
                         'sell_type' => (string) ($lockedItem['unit'] ?? ''),
                         'status' => 'Sortie déjà effectuée',
                     ];
@@ -140,7 +141,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                 if ($clientIssueId === 0 && $quantity > (float) $product['actual_quantity']) {
                     throw new RuntimeException('Stock insuffisant pour « ' . $product['medicine_name'] . ' » : disponible ' . $product['actual_quantity'] . ' ' . $product['sell_type'] . '.');
                 }
-                $lineTotal = round($quantity * (float) $product['selling_price'], 2);
+                $lineTotal = $clientIssueId > 0 ? (int) round($quantity * (float) $product['selling_price']) : round($quantity * (float) $product['selling_price'], 2);
                 $unitCost = (float) $product['actual_price'];
                 $subtotal += $lineTotal;
                 $costTotal += $quantity * $unitCost;
@@ -179,11 +180,10 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
             $productNames = implode(', ', array_column($items, 'name'));
             if ($clientIssueId > 0) {
                 $updated = $db->execute(
-                    "UPDATE sales SET invoice_number = ?, operator = ?, agent = ?, client_name = ?, client_id = ?, phone = ?, medicines = ?, products_json = ?, quantity = ?, units_json = ?, unit_cost = ?, actual_price = ?, tot_htva = ?, tva = ?, tva_paid = ?, tot_tvac = ?, debt = ?, total_amount = ?, total_profit = ?, discount = 0, commission = 0, date = CURDATE(), status = 'Active', netcash = ?, payment_method = ?, document_type = 'Facture' WHERE id = ? AND document_type = 'Commande' AND origin = 'Sortie client magasin' AND status = 'Active'",
-                    [$invoiceNumber, $user['nom_utilisateur'], $user['nom_complet'], $clientName, $clientId, $clientPhone, mb_substr($productNames, 0, 65000), json_encode($items, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR), json_encode(array_column($items, 'quantity'), JSON_THROW_ON_ERROR), json_encode(array_column($items, 'unit'), JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR), json_encode(array_column($items, 'unit_cost'), JSON_THROW_ON_ERROR), json_encode(array_column($items, 'unit_price'), JSON_THROW_ON_ERROR), (int) round($subtotal), $taxAmount, $paidVat, $grandTotal, $remaining, $grandTotal, (int) round($subtotal - $costTotal), $paidAmount, $paymentMethod, $clientIssueId]
+                    "UPDATE sales SET source_reference = COALESCE(source_reference, ?), invoice_number = ?, operator = ?, agent = ?, client_name = ?, client_id = ?, phone = ?, medicines = ?, products_json = ?, quantity = ?, units_json = ?, unit_cost = ?, actual_price = ?, tot_htva = ?, tva = ?, tva_paid = ?, tot_tvac = ?, debt = ?, total_amount = ?, total_profit = ?, discount = 0, commission = 0, date = CURDATE(), status = 'Active', netcash = ?, payment_method = ?, document_type = 'Facture' WHERE id = ? AND document_type = 'Commande' AND origin = 'Sortie client magasin' AND status = 'Active'",
+                    [$lockedIssue['invoice_number'], $invoiceNumber, $user['nom_utilisateur'], $user['nom_complet'], $clientName, $clientId, $clientPhone, mb_substr($productNames, 0, 65000), json_encode($items, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR), json_encode(array_column($items, 'quantity'), JSON_THROW_ON_ERROR), json_encode(array_column($items, 'unit'), JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR), json_encode(array_column($items, 'unit_cost'), JSON_THROW_ON_ERROR), json_encode(array_column($items, 'unit_price'), JSON_THROW_ON_ERROR), (int) round($subtotal), $taxAmount, $paidVat, $grandTotal, $remaining, $grandTotal, (int) round($subtotal - $costTotal), $paidAmount, $paymentMethod, $clientIssueId]
                 );
                 if ($updated !== 1) throw new RuntimeException('La sortie client a déjà été finalisée.');
-                $db->execute('UPDATE stock_movements SET reference = ? WHERE reference = ?', [$invoiceNumber, $lockedIssue['invoice_number']]);
                 $saleId = $clientIssueId;
             } else {
                 $saleId = $db->insert(

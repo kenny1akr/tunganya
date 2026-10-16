@@ -3,10 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 127.0.0.1
--- Généré le : jeu. 15 oct. 2026 à 16:22
--- Version du serveur : 10.4.32-MariaDB
--- Version de PHP : 8.2.12
--- database : `tunganya` mis a jour le 15/10/2026 à 16:22
+-- Généré le : ven. 16 oct. 2026 à 10:11
+-- Version du serveur : 10.4.28-MariaDB
+-- Version de PHP : 8.2.4
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -113,6 +112,13 @@ CREATE TABLE `banks` (
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Déchargement des données de la table `banks`
+--
+
+INSERT INTO `banks` (`id`, `bank_name`, `account_number`, `balance`, `currency`, `created_at`, `updated_at`) VALUES
+(1, 'BANCOBU', '00200105087', 0.00, 'FBu', '2026-10-16 08:00:35', '2026-10-16 08:00:35');
+
 -- --------------------------------------------------------
 
 --
@@ -132,6 +138,13 @@ CREATE TABLE `caisse` (
   `balance` decimal(15,0) GENERATED ALWAYS AS (`initial` + `montant_in` - `montant_out`) STORED
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Déchargement des données de la table `caisse`
+--
+
+INSERT INTO `caisse` (`id`, `initial`, `montant_in`, `montant_out`, `date`, `status`, `opened_by`, `closed_by`, `closed_at`) VALUES
+(1, 0, 5000, 0, '2026-10-14', 0, 'kemal NDAYISABA', NULL, NULL);
+
 -- --------------------------------------------------------
 
 --
@@ -147,6 +160,13 @@ CREATE TABLE `cash_in` (
   `reference` varchar(100) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Déchargement des données de la table `cash_in`
+--
+
+INSERT INTO `cash_in` (`id`, `trans_motive`, `amount`, `operator`, `date_created`, `reference`, `created_at`) VALUES
+(1, 'Paiement partiel facture', 5000.00, 'kemal NDAYISABA', '2026-10-14', 'FCT-20261014-542B8B06', '2026-10-14 10:33:36');
 
 -- --------------------------------------------------------
 
@@ -308,7 +328,8 @@ CREATE TABLE `cat_task` (
 --
 
 INSERT INTO `cat_task` (`id`, `category`, `adder`, `cat_date`, `status`) VALUES
-(1, 'Visite', 'Cynthia', '2026-10-12', 1);
+(1, 'Visite', 'Cynthia', '2026-10-12', 1),
+(2, 'Commande', 'system', '2026-10-16', 1);
 
 -- --------------------------------------------------------
 
@@ -377,6 +398,13 @@ CREATE TABLE `debts` (
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Déchargement des données de la table `debts`
+--
+
+INSERT INTO `debts` (`id`, `amount`, `paid_amount`, `client_indebted`, `client_id`, `operator`, `date_reported`, `invoice_number`, `due_date`, `status`, `alert_sent`, `created_at`, `updated_at`) VALUES
+(1, 11800, 5000, 'Odon', 8, 'kemal NDAYISABA', '2026-10-14', 'FCT-20261014-542B8B06', '2026-10-31', 2, 0, '2026-10-14 09:45:17', '2026-10-14 10:33:36');
+
 -- --------------------------------------------------------
 
 --
@@ -394,6 +422,13 @@ CREATE TABLE `debts_paid` (
   `date` date DEFAULT curdate(),
   `reference` varchar(100) DEFAULT NULL COMMENT 'Réf transaction bancaire'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Déchargement des données de la table `debts_paid`
+--
+
+INSERT INTO `debts_paid` (`id`, `debt_id`, `amount`, `client_name`, `operator`, `payment_method`, `invoice_number`, `date`, `reference`) VALUES
+(1, 1, 5000, 'Odon', 'kemal NDAYISABA', 'À crédit', 'FCT-20261014-542B8B06', '2026-10-14', NULL);
 
 -- --------------------------------------------------------
 
@@ -469,6 +504,13 @@ CREATE TABLE `documents` (
   `is_deleted` tinyint(1) DEFAULT 0 COMMENT 'Soft delete',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Déchargement des données de la table `documents`
+--
+
+INSERT INTO `documents` (`id`, `doc_type`, `doc_number`, `operator`, `client_name`, `client_id`, `phone`, `medicines`, `quantity`, `tot_htva`, `tva`, `tva_paid`, `tot_tvac`, `total_amount`, `date`, `doc_fields`, `file`, `file_size`, `file_type`, `category`, `status`, `contact_person`, `is_deleted`, `created_at`) VALUES
+(1, 'Facture', 'FCT-20261014-542B8B06', 'kemal NDAYISABA', 'Odon', 8, '', 'Bâche publicitaire (m²)', '[2]', 20000, 1800, 0, 11800, 11800, '2026-10-14', '{\"from_task\":\"CMD-20261014-8B5B51\",\"items\":[{\"stock_id\":11,\"name\":\"Bâche publicitaire (m²)\",\"quantity\":2,\"unit\":\"m²\",\"unit_price\":10000,\"line_total\":20000,\"note\":\"ddddddddddghfh\"}],\"subtotal\":20000,\"tax_rate\":18,\"tax_amount\":1800,\"total\":11800,\"paid\":0,\"remaining\":11800,\"payment_method\":\"À crédit\"}', NULL, NULL, NULL, 'Interne', 'Impayée', 'kemal NDAYISABA', 0, '2026-10-14 09:45:17');
 
 -- --------------------------------------------------------
 
@@ -677,6 +719,13 @@ CREATE TABLE `logs` (
   `module` varchar(50) DEFAULT NULL COMMENT 'MS-01, MS-02, ...'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Déchargement des données de la table `logs`
+--
+
+INSERT INTO `logs` (`id`, `user_id`, `action_type`, `facture`, `montant`, `descrip`, `date`, `type`, `status`, `viewed`, `module`) VALUES
+(1, 'kemal', 'Facture (depuis commande)', 'FCT-20261014-542B8B06', '11800', 'Facture FCT-20261014-542B8B06 créée depuis CMD-20261014-8B5B51', '2026-10-14 09:45:17', 'entrée', 'Active', 0, 'FCT-02');
+
 -- --------------------------------------------------------
 
 --
@@ -871,6 +920,48 @@ CREATE TABLE `partners` (
 INSERT INTO `partners` (`id`, `name`, `abbr`, `category`, `address`, `phone`, `email`, `portal_username`, `portal_password`, `RC`, `NIF`, `profil`, `debt_limit`, `debt`, `status_client`, `total_achats`, `frequence_achats`, `dernier_achat`, `rating`, `annif`, `birthday_promo_used`, `alert_debt`, `created_at`, `updated_at`) VALUES
 (3, 'KIM FLY TECH', NULL, 'fournisseur', 'Gituro,2,87', '+25768479247', 'kimfly@gmail.com', NULL, NULL, '', '', NULL, 0, 0, 'Nouveau', 0, 0, NULL, NULL, NULL, NULL, 0, '2026-10-13 00:11:02', '2026-10-13 00:11:02'),
 (7, 'Mike MANEKO', NULL, 'client', 'Gasarara', '+25767530006', 'mike@gmail.com', 'maneko', '$2y$10$cYgF77x6Xkdedzridjso2OF.HedL5OnwwlEm9xkhSTmyv11HZlrU6', '', '', NULL, 0, 0, 'Nouveau', 0, 0, NULL, NULL, '01-01', NULL, 0, '2026-10-13 12:32:08', '2026-10-13 12:32:08'),
+(8, 'Odon', NULL, 'client', 'kgfjdhfghf', '64365332', 'hackkalim@gmail.com', 'odon', '$2y$10$DF6JZCJ8Pk/U9btz9z9TDetTw2gxd5b8q66zIKSHpmVdDS3DkFv7G', 'dfh', '456354yg', NULL, 0, 11800, 'Nouveau', 11800, 1, '2026-10-14', NULL, '20-08', NULL, 0, '2026-10-13 17:23:16', '2026-10-14 09:45:17');
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `partners_merge_backup`
+--
+
+CREATE TABLE `partners_merge_backup` (
+  `id` int(100) NOT NULL DEFAULT 0,
+  `name` varchar(100) NOT NULL,
+  `abbr` varchar(25) DEFAULT NULL,
+  `category` enum('client','fournisseur') DEFAULT 'client',
+  `address` varchar(1000) NOT NULL DEFAULT '',
+  `phone` varchar(255) DEFAULT NULL,
+  `email` varchar(255) NOT NULL DEFAULT '',
+  `portal_username` varchar(100) DEFAULT NULL,
+  `portal_password` varchar(255) DEFAULT NULL COMMENT 'Hash du mot de passe du portail client',
+  `RC` varchar(100) NOT NULL DEFAULT '',
+  `NIF` varchar(255) NOT NULL DEFAULT '',
+  `profil` varchar(100) DEFAULT NULL,
+  `debt_limit` bigint(10) NOT NULL DEFAULT 0,
+  `debt` bigint(10) NOT NULL DEFAULT 0,
+  `status_client` enum('Nouveau','Régulier','VIP') DEFAULT 'Nouveau',
+  `total_achats` bigint(15) DEFAULT 0,
+  `frequence_achats` int(10) DEFAULT 0,
+  `dernier_achat` date DEFAULT NULL,
+  `rating` int(11) DEFAULT NULL,
+  `annif` varchar(10) DEFAULT NULL COMMENT 'Format JJ-MM',
+  `birthday_promo_used` date DEFAULT NULL,
+  `alert_debt` tinyint(1) DEFAULT 0,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Déchargement des données de la table `partners_merge_backup`
+--
+
+INSERT INTO `partners_merge_backup` (`id`, `name`, `abbr`, `category`, `address`, `phone`, `email`, `portal_username`, `portal_password`, `RC`, `NIF`, `profil`, `debt_limit`, `debt`, `status_client`, `total_achats`, `frequence_achats`, `dernier_achat`, `rating`, `annif`, `birthday_promo_used`, `alert_debt`, `created_at`, `updated_at`) VALUES
+(3, 'KIM FLY TECH', NULL, 'fournisseur', 'Gituro,2,87', '+25768479247', 'kimfly@gmail.com', NULL, NULL, '', '', NULL, 0, 0, 'Nouveau', 0, 0, NULL, NULL, NULL, NULL, 0, '2026-10-13 00:11:02', '2026-10-13 00:11:02'),
+(7, 'Mike MANEKO', NULL, 'client', 'Gasarara', '+25767530006', 'mike@gmail.com', 'maneko', '$2y$10$cYgF77x6Xkdedzridjso2OF.HedL5OnwwlEm9xkhSTmyv11HZlrU6', '', '', NULL, 0, 0, 'Nouveau', 0, 0, NULL, NULL, '01-01', NULL, 0, '2026-10-13 12:32:08', '2026-10-13 12:32:08'),
 (8, 'Nininahazwe Ladouce', NULL, 'client', 'Kinindo', '76000045', 'nininahazweladouce322@gmail.com', 'kemal', '$2y$10$NpngOdQrdZ3t4yeOzMK/seTnaVT5Ee0zMrYBiIT6hqZ26E8YeJZyS', '', '', NULL, 0, 0, 'Nouveau', 0, 0, NULL, NULL, NULL, NULL, 0, '2026-10-15 13:03:17', '2026-10-15 13:03:17');
 
 -- --------------------------------------------------------
@@ -959,6 +1050,9 @@ CREATE TABLE `sales` (
   `commission` bigint(11) NOT NULL DEFAULT 0,
   `date` date NOT NULL DEFAULT curdate(),
   `status` enum('Active','Supprimée') DEFAULT 'Active',
+  `offer_status` enum('Brouillon','Envoyée','Acceptée','Refusée','Expirée') DEFAULT NULL COMMENT 'Statut uniquement pour document_type=Devis',
+  `valid_until` date DEFAULT NULL COMMENT 'Date de validité de l''offre',
+  `offer_notes` text DEFAULT NULL COMMENT 'Notes libres (conditions, mentions spéciales)',
   `origin` varchar(50) NOT NULL DEFAULT 'Interne',
   `guard` varchar(500) NOT NULL DEFAULT '',
   `netcash` decimal(10,0) NOT NULL DEFAULT 0,
@@ -976,7 +1070,64 @@ CREATE TABLE `sales` (
 -- Déchargement des données de la table `sales`
 --
 
-INSERT INTO `sales` (`id`, `invoice_number`, `operator`, `agent`, `client_name`, `client_id`, `phone`, `medicines`, `products_json`, `quantity`, `units_json`, `unit_cost`, `actual_price`, `tot_htva`, `tva`, `tva_paid`, `tot_tvac`, `debt`, `total_amount`, `total_profit`, `discount`, `commission`, `date`, `status`, `origin`, `guard`, `netcash`, `payment_method`, `ext_paid_amount`, `ext_paid_status`, `cashier`, `document_type`, `created_at`, `machine_id`, `delivery_status`) VALUES
+INSERT INTO `sales` (`id`, `invoice_number`, `operator`, `agent`, `client_name`, `client_id`, `phone`, `medicines`, `products_json`, `quantity`, `units_json`, `unit_cost`, `actual_price`, `tot_htva`, `tva`, `tva_paid`, `tot_tvac`, `debt`, `total_amount`, `total_profit`, `discount`, `commission`, `date`, `status`, `offer_status`, `valid_until`, `offer_notes`, `origin`, `guard`, `netcash`, `payment_method`, `ext_paid_amount`, `ext_paid_status`, `cashier`, `document_type`, `created_at`, `machine_id`, `delivery_status`) VALUES
+(1, 'CLI-20261015-6E5B4B8D', 'kamana', 'KAMANA Holy', 'Nininahazwe Ladouce', 8, '76000045', 'produit1test', '[{\"stock_id\":6,\"name\":\"produit1test\",\"quantity\":17000,\"unit\":\"piece\",\"unit_cost\":69343,\"unit_price\":0,\"line_total\":0}]', '[17000]', '[\"piece\"]', '[69343]', '[0]', 0, 0, 0, 0, 0, 0, -1178831000, 0, 0, '2026-10-15', 'Active', NULL, NULL, NULL, 'Sortie client magasin', '', 0, 'À facturer', NULL, NULL, NULL, 'Commande', '2026-10-15 13:06:41', NULL, NULL),
+(2, 'CLI-20261015-C2853178', 'kamana', 'KAMANA Holy', 'Mike MANEKO', 7, '+25767530006', 'produit1test', '[{\"stock_id\":6,\"name\":\"produit1test\",\"quantity\":499,\"unit\":\"piece\",\"unit_cost\":69343,\"unit_price\":0,\"line_total\":0}]', '[499]', '[\"piece\"]', '[69343]', '[0]', 0, 0, 0, 0, 0, 0, -34602157, 0, 0, '2026-10-15', 'Active', NULL, NULL, NULL, 'Sortie client magasin', '', 0, 'À facturer', NULL, NULL, NULL, 'Commande', '2026-10-15 13:24:48', NULL, NULL),
+(3, 'OFF-20261014-0002', 'kemal', 'kemal NDAYISABA', 'Mike MANEKO', 7, '+25767530006', 'Bâche publicitaire, Kakémono', '[{\"stock_id\": null, \"name\": \"Bâche publicitaire 2×1 m\", \"quantity\": 1, \"unit\": \"m²\", \"unit_price\": 25000, \"line_total\": 50000, \"note\": \"Impression UV, œillets tous les 50 cm\"}, {\"stock_id\": null, \"name\": \"Kakémono 80×200 cm\", \"quantity\": 2, \"unit\": \"pièce\", \"unit_price\": 85000, \"line_total\": 170000, \"note\": \"Structure alu + sac de transport\"}]', '[1, 2]', '[\"m²\", \"pièce\"]', '[0, 0]', '[25000, 85000]', 220000, 39600, 0, 259600, 0, 259600, 259600, 0, 0, '2026-10-09', 'Active', 'Envoyée', '2026-10-24', 'Valable 15 jours. Livraison gratuite à Bujumbura.', 'Interne', '', 0, 'À crédit', NULL, NULL, NULL, 'Devis', '2026-10-14 11:05:50', NULL, NULL),
+(4, 'OFF-20261014-0003', 'kemal', 'kemal NDAYISABA', 'Mike MANEKO', 7, '+25767530006', 'Affiche A2 quadri + Pose', '[{\"stock_id\": null, \"name\": \"Affiche A2 quadri\", \"quantity\": 50, \"unit\": \"exemplaire\", \"unit_price\": 3500, \"line_total\": 175000, \"note\": \"Papier 170g couché\"}, {\"stock_id\": null, \"name\": \"Pose affiche\", \"quantity\": 50, \"unit\": \"forfait\", \"unit_price\": 500, \"line_total\": 25000, \"note\": \"\"}]', '[50, 50]', '[\"exemplaire\", \"forfait\"]', '[0, 0]', '[3500, 500]', 200000, 36000, 0, 236000, 0, 236000, 236000, 0, 0, '2026-10-02', 'Active', 'Acceptée', '2026-10-12', 'Acceptée verbalement — facture à émettre.', 'Interne', '', 0, 'À crédit', NULL, NULL, NULL, 'Devis', '2026-10-14 11:05:50', NULL, NULL),
+(5, 'OFF-20261014-0004', 'kemal', 'kemal NDAYISABA', 'Mike MANEKO', 7, '+25767530006', 'Brochure 32 pages', '[{\"stock_id\": null, \"name\": \"Brochure A4 32 pages\", \"quantity\": 500, \"unit\": \"exemplaire\", \"unit_price\": 4500, \"line_total\": 2250000, \"note\": \"Couverture 250g pelliculée, intérieur 135g\"}]', '[500]', '[\"exemplaire\"]', '[0]', '[4500]', 2250000, 405000, 0, 2655000, 0, 2655000, 2655000, 0, 0, '2026-09-24', 'Active', 'Refusée', '2026-10-09', 'Client a préféré un autre prestataire.', 'Interne', '', 0, 'À crédit', NULL, NULL, NULL, 'Devis', '2026-10-14 11:05:50', NULL, NULL),
+(6, 'OFF-20261014-0005', 'kemal', 'kemal NDAYISABA', 'Mike MANEKO', 7, '+25767530006', 'Carte de fidélité plastique', '[{\"stock_id\": null, \"name\": \"Carte PVC personnalisée\", \"quantity\": 2000, \"unit\": \"exemplaire\", \"unit_price\": 1200, \"line_total\": 2400000, \"note\": \"Impression quadri + vernis sélectif\"}]', '[2000]', '[\"exemplaire\"]', '[0]', '[1200]', 2400000, 432000, 0, 2832000, 0, 2832000, 2832000, 0, 0, '2026-08-30', 'Active', 'Expirée', '2026-09-29', 'Offre expirée sans réponse.', 'Interne', '', 0, 'À crédit', NULL, NULL, NULL, 'Devis', '2026-10-14 11:05:51', NULL, NULL),
+(7, 'OFF-20261014-0006', 'kemal', 'kemal NDAYISABA', 'Mike MANEKO', 7, '+25767530006', 'Pack enseigne magasin', '[{\"stock_id\": null, \"name\": \"Enseigne lumineuse 3×0.8 m\", \"quantity\": 1, \"unit\": \"pièce\", \"unit_price\": 850000, \"line_total\": 850000, \"note\": \"LED + structure alu\"}, {\"stock_id\": null, \"name\": \"Vinyle adhésif vitrine\", \"quantity\": 8, \"unit\": \"m²\", \"unit_price\": 18000, \"line_total\": 144000, \"note\": \"Découpe + pose\"}]', '[1, 8]', '[\"pièce\", \"m²\"]', '[0, 0]', '[850000, 18000]', 994000, 178920, 0, 1172920, 0, 1172920, 1172920, 50000, 0, '2026-10-11', 'Active', 'Acceptée', '2026-10-26', 'Remise commerciale accordée au client VIP.', 'Interne', '', 0, 'À crédit', NULL, NULL, NULL, 'Devis', '2026-10-14 11:05:51', NULL, NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `sales_merge_backup`
+--
+
+CREATE TABLE `sales_merge_backup` (
+  `id` int(11) NOT NULL DEFAULT 0,
+  `invoice_number` varchar(100) NOT NULL,
+  `operator` varchar(255) NOT NULL,
+  `agent` varchar(255) DEFAULT NULL,
+  `client_name` varchar(255) NOT NULL,
+  `client_id` int(100) DEFAULT NULL COMMENT 'Réf partners.id',
+  `phone` varchar(15) DEFAULT '',
+  `medicines` text NOT NULL,
+  `products_json` text DEFAULT NULL COMMENT 'JSON détaillé des produits (réf stock.id)',
+  `quantity` text NOT NULL,
+  `units_json` text DEFAULT NULL COMMENT 'JSON des unités utilisées',
+  `unit_cost` text DEFAULT NULL,
+  `actual_price` text DEFAULT NULL,
+  `tot_htva` bigint(20) NOT NULL DEFAULT 0,
+  `tva` bigint(20) NOT NULL DEFAULT 0,
+  `tva_paid` bigint(20) NOT NULL DEFAULT 0,
+  `tot_tvac` bigint(20) NOT NULL DEFAULT 0,
+  `debt` bigint(11) NOT NULL DEFAULT 0,
+  `total_amount` bigint(11) NOT NULL DEFAULT 0,
+  `total_profit` bigint(11) NOT NULL DEFAULT 0,
+  `discount` bigint(11) NOT NULL DEFAULT 0,
+  `commission` bigint(11) NOT NULL DEFAULT 0,
+  `date` date NOT NULL DEFAULT curdate(),
+  `status` enum('Active','Supprimée') DEFAULT 'Active',
+  `origin` varchar(50) NOT NULL DEFAULT 'Interne',
+  `guard` varchar(500) NOT NULL DEFAULT '',
+  `netcash` decimal(10,0) NOT NULL DEFAULT 0,
+  `payment_method` varchar(200) NOT NULL DEFAULT 'Espèces',
+  `ext_paid_amount` decimal(10,0) DEFAULT NULL,
+  `ext_paid_status` varchar(50) DEFAULT NULL,
+  `cashier` varchar(255) DEFAULT NULL,
+  `document_type` enum('Facture','Proforma','Devis','Commande','Livraison') DEFAULT 'Facture',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `machine_id` int(11) DEFAULT NULL COMMENT 'Machine utilisée (services impression)',
+  `delivery_status` enum('En préparation','Expédiée','Livrée','Annulée') DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Déchargement des données de la table `sales_merge_backup`
+--
+
+INSERT INTO `sales_merge_backup` (`id`, `invoice_number`, `operator`, `agent`, `client_name`, `client_id`, `phone`, `medicines`, `products_json`, `quantity`, `units_json`, `unit_cost`, `actual_price`, `tot_htva`, `tva`, `tva_paid`, `tot_tvac`, `debt`, `total_amount`, `total_profit`, `discount`, `commission`, `date`, `status`, `origin`, `guard`, `netcash`, `payment_method`, `ext_paid_amount`, `ext_paid_status`, `cashier`, `document_type`, `created_at`, `machine_id`, `delivery_status`) VALUES
 (1, 'CLI-20261015-6E5B4B8D', 'kamana', 'KAMANA Holy', 'Nininahazwe Ladouce', 8, '76000045', 'produit1test', '[{\"stock_id\":6,\"name\":\"produit1test\",\"quantity\":17000,\"unit\":\"piece\",\"unit_cost\":69343,\"unit_price\":0,\"line_total\":0}]', '[17000]', '[\"piece\"]', '[69343]', '[0]', 0, 0, 0, 0, 0, 0, -1178831000, 0, 0, '2026-10-15', 'Active', 'Sortie client magasin', '', 0, 'À facturer', NULL, NULL, NULL, 'Commande', '2026-10-15 13:06:41', NULL, NULL),
 (2, 'CLI-20261015-C2853178', 'kamana', 'KAMANA Holy', 'Mike MANEKO', 7, '+25767530006', 'produit1test', '[{\"stock_id\":6,\"name\":\"produit1test\",\"quantity\":499,\"unit\":\"piece\",\"unit_cost\":69343,\"unit_price\":0,\"line_total\":0}]', '[499]', '[\"piece\"]', '[69343]', '[0]', 0, 0, 0, 0, 0, 0, -34602157, 0, 0, '2026-10-15', 'Active', 'Sortie client magasin', '', 0, 'À facturer', NULL, NULL, NULL, 'Commande', '2026-10-15 13:24:48', NULL, NULL);
 
@@ -1116,7 +1267,13 @@ CREATE TABLE `stock` (
 
 INSERT INTO `stock` (`id`, `reference`, `barcode`, `bar_code`, `medicine_name`, `color`, `category`, `sub_category_id`, `shelf`, `registered_quantity`, `used_quantity`, `actual_quantity`, `register_date`, `expire_date`, `sell_type`, `unit_id`, `purchase_unit_id`, `sale_unit_id`, `origin`, `quality`, `actual_price`, `selling_price`, `profit_price`, `status`, `inventory`, `storage_conditions`, `profil`, `guard`, `requisition`, `seuil`, `low_stock_alert`, `expiring_alert`, `created_at`, `updated_at`, `grammage`, `format`, `dimensions_mm`, `laize`, `thickness_mm`, `ink_color`, `support_type`, `finish_type`, `brand`, `supplier_id`, `location`, `min_stock_alert`, `reorder_level`, `purchase_price`, `photo_url`, `notes`) VALUES
 (5, NULL, NULL, 0, 'Lou', '#000000', 'Produit', NULL, '', 41.00, 1.06, 39.94, '2026-10-13', '2026-10-15', 'm²', NULL, NULL, NULL, 'Ajout manuel', 'Standard', 2927, 4000, 1073, 'Disponible', 40.00, '', '', 0, 0.00, 3, 0, 0, '2026-10-13 17:56:32', '2026-10-13 18:03:36', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00, NULL, NULL),
-(6, NULL, NULL, 0, 'produit1test', '#000000', 'Wliper for 1,9', NULL, '', 17500.00, 17499.00, 1.00, '2026-10-15', '2026-10-23', 'piece', NULL, NULL, NULL, 'Ajout manuel', 'Standard', 69343, 0, -69343, 'Disponible', 5000.00, '', '', 0, 0.00, 100, 0, 0, '2026-10-15 12:44:24', '2026-10-15 13:24:48', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00, NULL, NULL);
+(6, NULL, NULL, 0, 'produit1test', '#000000', 'Wliper for 1,9', NULL, '', 17500.00, 17499.00, 1.00, '2026-10-15', '2026-10-23', 'piece', NULL, NULL, NULL, 'Ajout manuel', 'Standard', 69343, 0, -69343, 'Disponible', 5000.00, '', '', 0, 0.00, 100, 0, 0, '2026-10-15 12:44:24', '2026-10-15 13:24:48', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00, NULL, NULL),
+(7, 'PAP-CC-A4', NULL, 0, 'Papier couché brillant A4', '#000000', 'Papiers & Supports', NULL, NULL, 40.00, 0.00, 40.00, '2026-10-14', NULL, 'rame', NULL, NULL, NULL, 'Achat local', 'Premium', 18000, 26000, 8000, 'Disponible', 0.00, '', '', 0, 0.00, 5, 0, 0, '2026-10-14 08:59:42', '2026-10-14 08:59:42', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00, NULL, NULL),
+(8, 'ENC-NOIR', NULL, 0, 'Encre offset noire (kg)', '#000000', 'Encres & Consommables', NULL, NULL, 20.00, 0.00, 20.00, '2026-10-14', NULL, 'kg', NULL, NULL, NULL, 'Import', 'Standard', 25000, 35000, 10000, 'Disponible', 0.00, '', '', 0, 0.00, 3, 0, 0, '2026-10-14 08:59:42', '2026-10-14 08:59:42', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00, NULL, NULL),
+(9, 'ENC-CMYK', NULL, 0, 'Encre offset quadri (kg)', '#000000', 'Encres & Consommables', NULL, NULL, 10.00, 0.00, 10.00, '2026-10-14', NULL, 'kg', NULL, NULL, NULL, 'Import', 'Standard', 32000, 45000, 13000, 'Disponible', 0.00, '', '', 0, 0.00, 2, 0, 0, '2026-10-14 08:59:42', '2026-10-14 08:59:42', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00, NULL, NULL),
+(10, 'PLQ-CTP', NULL, 0, 'Plaque CTP offset', '#000000', 'Plaques & Formes', NULL, NULL, 80.00, 0.00, 80.00, '2026-10-14', NULL, 'plaque', NULL, NULL, NULL, 'Import', 'Standard', 12000, 18000, 6000, 'Disponible', 0.00, '', '', 0, 0.00, 10, 0, 0, '2026-10-14 08:59:42', '2026-10-14 08:59:42', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00, NULL, NULL),
+(11, 'GDF-BACHE', NULL, 0, 'Bâche publicitaire (m²)', '#000000', 'Grand Format', NULL, NULL, 200.00, 2.00, 198.00, '2026-10-14', NULL, 'm²', NULL, NULL, NULL, 'Achat local', 'Standard', 6000, 10000, 4000, 'Disponible', 0.00, '', '', 0, 0.00, 20, 0, 0, '2026-10-14 08:59:42', '2026-10-14 09:45:17', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00, NULL, NULL),
+(12, 'SRV-IMPR', NULL, 0, 'Service impression (heure)', '#000000', 'Services Impression', NULL, NULL, 100.00, 0.00, 100.00, '2026-10-14', NULL, 'heure', NULL, NULL, NULL, 'Interne', 'Standard', 0, 25000, 25000, 'Disponible', 0.00, '', '', 0, 0.00, 5, 0, 0, '2026-10-14 08:59:42', '2026-10-14 08:59:42', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -1243,6 +1400,57 @@ CREATE TABLE `tasks` (
   `ticket_no` varchar(50) NOT NULL COMMENT 'Format: VNT-202606-001',
   `client` varchar(255) NOT NULL,
   `client_id` int(100) DEFAULT NULL,
+  `walk_in` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'Client de passage non enregistré',
+  `client_reference` varchar(100) DEFAULT NULL COMMENT 'Référence client (PO, réf. téléphonique…)',
+  `category` varchar(100) NOT NULL,
+  `priority` enum('Basse','Moyenne','Haute','Critique') DEFAULT 'Moyenne',
+  `created_by` varchar(25) NOT NULL,
+  `assigned_to` varchar(25) NOT NULL,
+  `contributor` varchar(25) DEFAULT NULL,
+  `created_at` date NOT NULL DEFAULT curdate(),
+  `order_date` date DEFAULT NULL COMMENT 'Date de la commande (peut différer de created_at)',
+  `updated_at` datetime DEFAULT NULL,
+  `due_date` date DEFAULT NULL,
+  `delivery_address` varchar(255) DEFAULT NULL COMMENT 'Adresse de livraison',
+  `status` enum('Nouveau','Consulté','En cours','Résolu','Annulé') NOT NULL DEFAULT 'Nouveau',
+  `delivery_status` enum('En préparation','Expédiée','Livrée','Annulée') NOT NULL DEFAULT 'En préparation',
+  `invoice_number` varchar(100) DEFAULT NULL COMMENT 'Numéro de facture si la commande a été convertie',
+  `converted_at` datetime DEFAULT NULL COMMENT 'Horodatage de conversion en facture',
+  `description` text DEFAULT NULL,
+  `items_json` text DEFAULT NULL COMMENT 'JSON détaillé des lignes commandées',
+  `subtotal` bigint(20) NOT NULL DEFAULT 0 COMMENT 'Sous-total HT avant remise',
+  `discount_type` enum('Aucune','Pourcentage','Montant fixe') NOT NULL DEFAULT 'Aucune',
+  `discount_value` decimal(10,2) NOT NULL DEFAULT 0.00 COMMENT 'Valeur saisie (%, ou montant fixe)',
+  `discount_amount` bigint(20) NOT NULL DEFAULT 0 COMMENT 'Remise calculée en FBu',
+  `tax_rate` decimal(5,2) NOT NULL DEFAULT 18.00 COMMENT 'Taux TVA appliqué (%)',
+  `tax_amount` bigint(20) NOT NULL DEFAULT 0 COMMENT 'Montant TVA en FBu',
+  `total_amount` bigint(20) NOT NULL DEFAULT 0 COMMENT 'Total TTC',
+  `payment_terms` varchar(50) DEFAULT NULL COMMENT 'À la commande, À la livraison, 30 jours, À crédit',
+  `deposit_amount` bigint(20) NOT NULL DEFAULT 0 COMMENT 'Acompte reçu en FBu',
+  `deposit_method` varchar(50) DEFAULT NULL COMMENT 'Espèces, Virement bancaire',
+  `bank_id` int(11) DEFAULT NULL COMMENT 'Réf banks.id si virement',
+  `sound_status` tinyint(1) DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Déchargement des données de la table `tasks`
+--
+
+INSERT INTO `tasks` (`id`, `ticket_no`, `client`, `client_id`, `walk_in`, `client_reference`, `category`, `priority`, `created_by`, `assigned_to`, `contributor`, `created_at`, `order_date`, `updated_at`, `due_date`, `delivery_address`, `status`, `delivery_status`, `invoice_number`, `converted_at`, `description`, `items_json`, `subtotal`, `discount_type`, `discount_value`, `discount_amount`, `tax_rate`, `tax_amount`, `total_amount`, `payment_terms`, `deposit_amount`, `deposit_method`, `bank_id`, `sound_status`) VALUES
+(1, 'CMD-20261014-F15A86', 'Odon', 8, 0, 'BON DE COMMANDE', 'Commande', 'Basse', 'kemal', 'ishimwe', NULL, '2026-10-14', '2026-10-14', '2026-10-14 11:02:45', '2026-10-15', 'Kanyosha', 'Résolu', 'Livrée', NULL, NULL, 'Hello hello hello', '[{\"stock_id\":5,\"name\":\"Papier A4 80g (rame)\",\"quantity\":1,\"unit\":\"rame\",\"unit_price\":12000,\"line_total\":12000,\"note\":\"good one\"}]', 12000, 'Aucune', 0.00, 0, 18.00, 2160, 14160, 'À la commande', 0, 'Espèces', NULL, 1),
+(2, 'CMD-20261014-8B5B51', 'Odon', 8, 0, 'BON DE COMMANDE', 'Commande', 'Moyenne', 'kemal', 'ishimwe', NULL, '2026-10-14', '2026-10-14', '2026-10-14 11:45:17', '2026-10-31', 'Kanyosha', 'Résolu', 'Livrée', 'FCT-20261014-542B8B06', '2026-10-14 11:45:17', 'dfsgsdf', '[{\"stock_id\":11,\"name\":\"Bâche publicitaire (m²)\",\"quantity\":2,\"unit\":\"m²\",\"unit_price\":10000,\"line_total\":20000,\"note\":\"ddddddddddghfh\"}]', 20000, 'Montant fixe', 10000.00, 10000, 18.00, 1800, 11800, 'À la commande', 0, 'Espèces', NULL, 1);
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `tasks_merge_backup`
+--
+
+CREATE TABLE `tasks_merge_backup` (
+  `id` int(11) NOT NULL DEFAULT 0,
+  `ticket_no` varchar(50) NOT NULL COMMENT 'Format: VNT-202606-001',
+  `client` varchar(255) NOT NULL,
+  `client_id` int(100) DEFAULT NULL,
   `category` varchar(100) NOT NULL,
   `priority` enum('Basse','Moyenne','Haute','Critique') DEFAULT 'Moyenne',
   `created_by` varchar(25) NOT NULL,
@@ -1284,6 +1492,13 @@ CREATE TABLE `transactions` (
   `type` enum('entrée','sortie') DEFAULT NULL,
   `status` enum('Active','Supprimée') NOT NULL DEFAULT 'Active'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Déchargement des données de la table `transactions`
+--
+
+INSERT INTO `transactions` (`id`, `user_id`, `action_type`, `ref_id`, `montant`, `date`, `type`, `status`) VALUES
+(1, 'kemal', 'Paiement partiel facture', 'FCT-20261014-542B8B06', '5000', '2026-10-14 10:33:36', 'entrée', 'Active');
 
 -- --------------------------------------------------------
 
@@ -1840,7 +2055,9 @@ ALTER TABLE `sales`
   ADD KEY `idx_status` (`status`),
   ADD KEY `idx_type` (`document_type`),
   ADD KEY `idx_sales_date_status` (`date`,`status`),
-  ADD KEY `idx_machine` (`machine_id`);
+  ADD KEY `idx_machine` (`machine_id`),
+  ADD KEY `idx_offers_status` (`document_type`,`offer_status`),
+  ADD KEY `idx_offers_valid` (`valid_until`);
 
 --
 -- Index pour la table `sell_type`
@@ -1904,7 +2121,14 @@ ALTER TABLE `tasks`
   ADD UNIQUE KEY `uk_ticket` (`ticket_no`),
   ADD KEY `idx_assigned` (`assigned_to`),
   ADD KEY `idx_status` (`status`),
-  ADD KEY `idx_priority` (`priority`);
+  ADD KEY `idx_priority` (`priority`),
+  ADD KEY `idx_tasks_ticket` (`ticket_no`),
+  ADD KEY `idx_tasks_status` (`status`),
+  ADD KEY `idx_tasks_assigned` (`assigned_to`,`status`),
+  ADD KEY `idx_tasks_category` (`category`),
+  ADD KEY `idx_tasks_due` (`due_date`),
+  ADD KEY `idx_tasks_client` (`client_id`),
+  ADD KEY `fk_tasks_bank` (`bank_id`);
 
 --
 -- Index pour la table `temp`
@@ -1972,19 +2196,19 @@ ALTER TABLE `arch_types`
 -- AUTO_INCREMENT pour la table `banks`
 --
 ALTER TABLE `banks`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT pour la table `caisse`
 --
 ALTER TABLE `caisse`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT pour la table `cash_in`
 --
 ALTER TABLE `cash_in`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT pour la table `cash_out`
@@ -2026,7 +2250,7 @@ ALTER TABLE `cat_prod`
 -- AUTO_INCREMENT pour la table `cat_task`
 --
 ALTER TABLE `cat_task`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT pour la table `cat_users`
@@ -2044,13 +2268,13 @@ ALTER TABLE `chats`
 -- AUTO_INCREMENT pour la table `debts`
 --
 ALTER TABLE `debts`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT pour la table `debts_paid`
 --
 ALTER TABLE `debts_paid`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT pour la table `deleted_sales`
@@ -2068,7 +2292,7 @@ ALTER TABLE `discounts`
 -- AUTO_INCREMENT pour la table `documents`
 --
 ALTER TABLE `documents`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT pour la table `email_logs`
@@ -2110,7 +2334,7 @@ ALTER TABLE `logintos`
 -- AUTO_INCREMENT pour la table `logs`
 --
 ALTER TABLE `logs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT pour la table `machines`
@@ -2182,7 +2406,7 @@ ALTER TABLE `report_comments`
 -- AUTO_INCREMENT pour la table `sales`
 --
 ALTER TABLE `sales`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT pour la table `sell_type`
@@ -2200,7 +2424,7 @@ ALTER TABLE `sett`
 -- AUTO_INCREMENT pour la table `stock`
 --
 ALTER TABLE `stock`
-  MODIFY `id` int(100) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(100) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT pour la table `stock_movements`
@@ -2224,7 +2448,7 @@ ALTER TABLE `sys_control`
 -- AUTO_INCREMENT pour la table `tasks`
 --
 ALTER TABLE `tasks`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT pour la table `temp`
@@ -2236,7 +2460,7 @@ ALTER TABLE `temp`
 -- AUTO_INCREMENT pour la table `transactions`
 --
 ALTER TABLE `transactions`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT pour la table `units`
@@ -2308,6 +2532,12 @@ ALTER TABLE `stock`
 ALTER TABLE `sub_categories`
   ADD CONSTRAINT `fk_subcat_cat` FOREIGN KEY (`category_id`) REFERENCES `cat_prod` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `fk_subcat_unit` FOREIGN KEY (`base_unit_id`) REFERENCES `units` (`id`) ON DELETE SET NULL;
+
+--
+-- Contraintes pour la table `tasks`
+--
+ALTER TABLE `tasks`
+  ADD CONSTRAINT `fk_tasks_bank` FOREIGN KEY (`bank_id`) REFERENCES `banks` (`id`) ON DELETE SET NULL;
 
 --
 -- Contraintes pour la table `units`

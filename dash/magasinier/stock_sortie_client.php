@@ -14,11 +14,12 @@ $client = $clientId > 0 ? $db->fetch("SELECT id, name, phone FROM partners WHERE
 $clients = [];
 if (!$client && $search !== '') {
     $term = '%' . $search . '%';
-    $clients = $db->fetchAll("SELECT id, name, phone FROM partners WHERE category = 'client' AND (name LIKE ? OR phone LIKE ?) ORDER BY name LIMIT 50", [$term, $term]);
+    $clients = $db->fetchAll("SELECT id, name, phone FROM partners WHERE category = 'client' AND (LOWER(name) LIKE LOWER(?) OR phone LIKE ?) ORDER BY name LIMIT 20", [$term, $term]);
 }
 $products = $client ? $db->fetchAll('SELECT id, medicine_name, actual_quantity, sell_type FROM stock WHERE actual_quantity > 0 ORDER BY medicine_name') : [];
 $productIds = array_values((array) ($_POST['product_id'] ?? ['']));
 $quantities = array_values((array) ($_POST['quantity'] ?? ['1']));
+$unitPrices = array_values((array) ($_POST['unit_price'] ?? ['']));
 $workshop = trim((string) ($_POST['workshop'] ?? ''));
 $beneficiary = trim((string) ($_POST['beneficiary'] ?? ''));
 $workReference = trim((string) ($_POST['work_reference'] ?? ''));
@@ -29,6 +30,7 @@ if (empty($_SESSION['client_issue_token'])) $_SESSION['client_issue_token'] = bi
 if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
     $productIds = array_values((array) ($_POST['product_id'] ?? []));
     $quantities = array_values((array) ($_POST['quantity'] ?? []));
+    $unitPrices = array_values((array) ($_POST['unit_price'] ?? []));
     $workshop = trim((string) ($_POST['workshop'] ?? ''));
     $beneficiary = trim((string) ($_POST['beneficiary'] ?? ''));
     $workReference = trim((string) ($_POST['work_reference'] ?? ''));
@@ -41,14 +43,19 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
 
     $lineInputs = [];
     $seen = [];
-    $rowCount = max(count($productIds), count($quantities));
+    $rowCount = max(count($productIds), count($quantities), count($unitPrices));
     if ($rowCount > 50) $errors[] = 'Une sortie ne peut pas contenir plus de 50 articles.';
     for ($index = 0; $index < min($rowCount, 50); $index++) {
         $lineProductId = (int) ($productIds[$index] ?? 0);
         $quantityText = str_replace(',', '.', trim((string) ($quantities[$index] ?? '')));
-        if ($lineProductId <= 0 && $quantityText === '') continue;
+        $unitPriceText = trim((string) ($unitPrices[$index] ?? ''));
+        if ($lineProductId <= 0 && $unitPriceText === '') continue;
         if ($lineProductId <= 0 || !is_numeric($quantityText) || !is_finite((float) $quantityText) || (float) $quantityText <= 0) {
             $errors[] = 'Chaque ligne doit contenir un article et une quantité supérieure à zéro.';
+            continue;
+        }
+        if (!is_numeric($unitPriceText) || !is_finite((float) $unitPriceText) || (float) $unitPriceText < 1 || (float) $unitPriceText > 9999999999 || floor((float) $unitPriceText) !== (float) $unitPriceText) {
+            $errors[] = 'Saisissez un prix unitaire entier en FBu supérieur à zéro pour chaque article.';
             continue;
         }
         if (isset($seen[$lineProductId])) {
@@ -56,7 +63,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
             continue;
         }
         $seen[$lineProductId] = true;
-        $lineInputs[] = ['id' => $lineProductId, 'quantity' => round((float) $quantityText, 2)];
+        $lineInputs[] = ['id' => $lineProductId, 'quantity' => round((float) $quantityText, 2), 'unit_price' => (int) $unitPriceText];
     }
     if (!$lineInputs) $errors[] = 'Ajoutez au moins un article à la sortie.';
 
@@ -80,17 +87,18 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                 $product = $productsById[$line['id']];
                 $quantity = $line['quantity'];
                 if ($quantity > (float) $product['actual_quantity']) throw new RuntimeException('Stock insuffisant pour « ' . $product['medicine_name'] . ' ».');
-                $unitPrice = (float) $product['selling_price'];
+                $unitPrice = (int) $line['unit_price'];
                 $unitCost = (float) $product['actual_price'];
-                $lineTotal = round($quantity * $unitPrice, 2);
+                $lineTotal = (int) round($quantity * $unitPrice);
                 $subtotal += $lineTotal;
                 $costTotal += $quantity * $unitCost;
                 $items[] = ['stock_id' => (int) $product['id'], 'name' => $product['medicine_name'], 'quantity' => $quantity, 'unit' => $product['sell_type'], 'unit_cost' => $unitCost, 'unit_price' => $unitPrice, 'line_total' => $lineTotal];
             }
 
             $taxRate = defined('TVA_DEFAULT') ? (float) TVA_DEFAULT : 18.0;
+            $subtotal = (int) round($subtotal);
             $taxAmount = (int) round($subtotal * $taxRate / 100);
-            $grandTotal = (int) round($subtotal) + $taxAmount;
+            $grandTotal = $subtotal + $taxAmount;
             $issueNumber = 'CLI-' . date('Ymd') . '-' . strtoupper(bin2hex(random_bytes(4)));
             $productNames = implode(', ', array_column($items, 'name'));
             $itemsJson = json_encode($items, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
@@ -127,17 +135,99 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
     <?php if ($errors): ?><div role="alert" class="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-800"><ul class="list-disc pl-5"><?php foreach (array_unique($errors) as $error): ?><li><?= inventoryEscape($error) ?></li><?php endforeach; ?></ul></div><?php endif; ?>
 
     <?php if (!$client): ?>
-        <form method="get" action="<?= inventoryEscape(app_url('router.php')) ?>" class="grid gap-3 rounded-md border border-slate-200 bg-white p-5 sm:grid-cols-[1fr_auto] sm:items-end"><input type="hidden" name="route" value="<?= inventoryEscape($role . '/stock/sorties-clients') ?>"><label class="space-y-1 text-sm font-medium">Rechercher un client par nom ou téléphone<input name="q" value="<?= inventoryEscape($search) ?>" required autofocus class="w-full rounded-md border border-slate-300 px-3 py-2.5 font-normal"></label><button class="rounded-md bg-green-700 px-4 py-2.5 text-sm font-semibold text-white">Rechercher le client</button></form>
-        <?php if ($search !== ''): ?><div class="overflow-x-auto rounded-md border border-slate-200 bg-white"><table class="min-w-full divide-y text-sm"><thead class="bg-slate-50 text-left text-xs uppercase text-slate-500"><tr><th class="px-4 py-3">Client</th><th class="px-4 py-3">Téléphone</th><th class="px-4 py-3">Action</th></tr></thead><tbody class="divide-y"><?php if (!$clients): ?><tr><td colspan="3" class="px-4 py-8 text-center text-slate-500">Aucun client trouvé. La sortie client exige un client enregistré.</td></tr><?php else: foreach ($clients as $candidate): ?><tr><td class="px-4 py-3 font-medium"><?= inventoryEscape($candidate['name']) ?></td><td class="px-4 py-3"><?= inventoryEscape($candidate['phone'] ?: '—') ?></td><td class="px-4 py-3"><a class="font-semibold text-green-800 hover:underline" href="<?= inventoryEscape(app_route_url('stock/sorties-clients')) ?>?client_id=<?= (int) $candidate['id'] ?>">Sélectionner</a></td></tr><?php endforeach; endif; ?></tbody></table></div><?php endif; ?>
+        <form id="clientSearchForm" method="get" action="<?= inventoryEscape(app_url('router.php')) ?>" class="grid gap-3 rounded-md border border-slate-200 bg-white p-5 sm:grid-cols-[1fr_auto] sm:items-end"><input type="hidden" name="route" value="<?= inventoryEscape($role . '/stock/sorties-clients') ?>"><label class="space-y-1 text-sm font-medium">Rechercher un client par nom ou téléphone<input id="clientSearchInput" name="q" value="<?= inventoryEscape($search) ?>" autofocus autocomplete="off" class="w-full rounded-md border border-slate-300 px-3 py-2.5 font-normal"></label><button class="rounded-md bg-green-700 px-4 py-2.5 text-sm font-semibold text-white">Rechercher le client</button></form>
+        <div id="clientSearchStatus" class="text-sm text-slate-600" role="status" aria-live="polite"><?= $search === '' ? 'Saisissez au moins une lettre ou un chiffre pour rechercher un client.' : '' ?></div>
+        <div id="clientSearchResults" class="overflow-x-auto rounded-md border border-slate-200 bg-white" <?= $search === '' ? 'hidden' : '' ?>><table class="min-w-full divide-y text-sm"><thead class="bg-slate-50 text-left text-xs uppercase text-slate-500"><tr><th class="px-4 py-3">Client</th><th class="px-4 py-3">Téléphone</th><th class="px-4 py-3">Action</th></tr></thead><tbody class="divide-y"><?php if ($search !== '' && !$clients): ?><tr><td colspan="3" class="px-4 py-8 text-center text-slate-500">Aucun client ne correspond à cette recherche.</td></tr><?php else: foreach ($clients as $candidate): ?><tr><td class="px-4 py-3 font-medium"><?= inventoryEscape($candidate['name']) ?></td><td class="px-4 py-3"><?= inventoryEscape($candidate['phone'] ?: '—') ?></td><td class="px-4 py-3"><button type="button" data-client-id="<?= (int) $candidate['id'] ?>" class="select-client rounded border border-green-700 px-3 py-1.5 font-semibold text-green-800 hover:bg-green-50">Sélectionner</button></td></tr><?php endforeach; endif; ?></tbody></table></div>
+        <script>
+        (() => {
+            const form = document.getElementById('clientSearchForm');
+            const input = document.getElementById('clientSearchInput');
+            const status = document.getElementById('clientSearchStatus');
+            const results = document.getElementById('clientSearchResults');
+            const endpoint = new URL(form.action, window.location.href);
+            endpoint.searchParams.set('route', form.elements.route.value);
+            endpoint.searchParams.set('ajax', 'client-search');
+            let timer;
+            let request;
+            const selectUrl = new URL(form.action, window.location.href);
+            selectUrl.searchParams.set('route', form.elements.route.value);
+            function render(clients) {
+                const body = results.querySelector('tbody');
+                body.replaceChildren();
+                if (!clients.length) {
+                    const row = body.insertRow();
+                    const cell = row.insertCell();
+                    cell.colSpan = 3;
+                    cell.className = 'px-4 py-8 text-center text-slate-500';
+                    cell.textContent = 'Aucun client ne correspond à cette recherche.';
+                } else {
+                    clients.forEach(client => {
+                        const row = body.insertRow();
+                        const name = row.insertCell();
+                        name.className = 'px-4 py-3 font-medium';
+                        name.textContent = client.name;
+                        const phone = row.insertCell();
+                        phone.className = 'px-4 py-3';
+                        phone.textContent = client.phone || '—';
+                        const action = row.insertCell();
+                        action.className = 'px-4 py-3';
+                        const button = document.createElement('button');
+                        button.type = 'button';
+                        button.dataset.clientId = client.id;
+                        button.className = 'select-client rounded border border-green-700 px-3 py-1.5 font-semibold text-green-800 hover:bg-green-50';
+                        button.textContent = 'Sélectionner';
+                        action.append(button);
+                    });
+                }
+                results.hidden = false;
+            }
+            input.addEventListener('input', () => {
+                clearTimeout(timer);
+                if (request) request.abort();
+                const query = input.value.trim();
+                if (!query) {
+                    results.hidden = true;
+                    status.textContent = 'Saisissez au moins une lettre ou un chiffre pour rechercher un client.';
+                    return;
+                }
+                status.textContent = 'Recherche des clients…';
+                timer = setTimeout(async () => {
+                    request = new AbortController();
+                    endpoint.searchParams.set('q', query);
+                    try {
+                        const response = await fetch(endpoint, {headers: {'Accept': 'application/json'}, signal: request.signal});
+                        if (!response.ok) throw new Error('Recherche indisponible');
+                        const data = await response.json();
+                        render(data.clients || []);
+                        status.textContent = data.clients?.length ? `${data.clients.length} résultat(s)` : 'Aucun client trouvé.';
+                    } catch (error) {
+                        if (error.name === 'AbortError') return;
+                        results.hidden = true;
+                        status.textContent = 'Impossible de rechercher les clients. Vérifiez votre connexion puis réessayez.';
+                    }
+                }, 250);
+            });
+            results.addEventListener('click', event => {
+                const button = event.target.closest('.select-client');
+                if (!button) return;
+                selectUrl.searchParams.set('client_id', button.dataset.clientId);
+                window.location.assign(selectUrl);
+            });
+            form.addEventListener('submit', event => {
+                event.preventDefault();
+                input.dispatchEvent(new Event('input'));
+            });
+        })();
+        </script>
     <?php else: ?>
         <div class="flex flex-wrap items-center justify-between gap-3 border-y border-slate-200 py-4"><div><p class="text-xs font-semibold uppercase text-slate-500">Client sélectionné</p><p class="mt-1 font-semibold text-slate-900"><?= inventoryEscape($client['name']) ?></p><p class="text-sm text-slate-600"><?= inventoryEscape($client['phone'] ?: 'Téléphone non renseigné') ?></p></div><a href="<?= inventoryEscape(app_route_url('stock/sorties-clients')) ?>" class="text-sm font-medium text-green-800 hover:underline">Changer de client</a></div>
         <?php if (!$products): ?><div class="rounded-md border border-amber-200 bg-amber-50 p-4 text-amber-900">Aucun article disponible en stock.</div><?php endif; ?>
         <form method="post" class="space-y-5 rounded-md border border-slate-200 bg-white p-5"><input type="hidden" name="csrf_token" value="<?= inventoryEscape($_SESSION['csrf_token']) ?>"><input type="hidden" name="issue_token" value="<?= inventoryEscape($_SESSION['client_issue_token']) ?>"><input type="hidden" name="client_id" value="<?= (int) $client['id'] ?>">
-            <fieldset class="space-y-3"><div class="flex items-center justify-between gap-3"><legend class="text-sm font-semibold">Articles remis</legend><button type="button" id="addClientLine" class="rounded-md border border-slate-300 px-3 py-2 text-sm font-medium" <?= !$products ? 'disabled' : '' ?>>Ajouter un article</button></div><div id="clientLines" class="space-y-3"><?php foreach ($productIds as $lineIndex => $selectedId): ?><div class="client-line grid gap-3 rounded-md border border-slate-200 p-3 sm:grid-cols-[minmax(0,1fr)_9rem_auto] sm:items-end"><label class="space-y-1 text-sm font-medium">Article<select name="product_id[]" required class="client-product w-full rounded-md border border-slate-300 bg-white px-3 py-2.5 font-normal"><option value="">Choisir un article</option><?php foreach ($products as $product): ?><option value="<?= (int) $product['id'] ?>" <?= (string) $selectedId === (string) $product['id'] ? 'selected' : '' ?>><?= inventoryEscape($product['medicine_name']) ?> · <?= number_format((float) $product['actual_quantity'], 2, ',', ' ') ?> <?= inventoryEscape($product['sell_type']) ?></option><?php endforeach; ?></select></label><label class="space-y-1 text-sm font-medium">Quantité<input name="quantity[]" type="number" min="0.01" step="0.01" required value="<?= inventoryEscape($quantities[$lineIndex] ?? '1') ?>" class="w-full rounded-md border border-slate-300 px-3 py-2.5 font-normal"></label><button type="button" class="remove-client-line rounded-md border border-slate-300 p-2 text-rose-700" aria-label="Retirer l’article" title="Retirer l’article">Retirer</button></div><?php endforeach; ?></div></fieldset>
+            <fieldset class="space-y-3"><div class="flex items-center justify-between gap-3"><legend class="text-sm font-semibold">Articles remis</legend><button type="button" id="addClientLine" class="rounded-md border border-slate-300 px-3 py-2 text-sm font-medium" <?= !$products ? 'disabled' : '' ?>>Ajouter un article</button></div><div id="clientLines" class="space-y-3"><?php foreach ($productIds as $lineIndex => $selectedId): ?><div class="client-line grid gap-3 rounded-md border border-slate-200 p-3 sm:grid-cols-[minmax(0,1fr)_7rem_8rem_9rem_9rem_auto] sm:items-end"><label class="space-y-1 text-sm font-medium">Article<select name="product_id[]" required class="client-product w-full rounded-md border border-slate-300 bg-white px-3 py-2.5 font-normal"><option value="">Choisir un article</option><?php foreach ($products as $product): ?><option value="<?= (int) $product['id'] ?>" data-unit="<?= inventoryEscape($product['sell_type']) ?>" <?= (string) $selectedId === (string) $product['id'] ? 'selected' : '' ?>><?= inventoryEscape($product['medicine_name']) ?> · <?= number_format((float) $product['actual_quantity'], 2, ',', ' ') ?> <?= inventoryEscape($product['sell_type']) ?></option><?php endforeach; ?></select></label><div class="text-sm"><span class="block font-medium">Unité</span><output class="client-unit block rounded-md bg-slate-50 px-3 py-2.5">—</output></div><label class="space-y-1 text-sm font-medium">Quantité<input name="quantity[]" type="number" min="0.01" step="0.01" required value="<?= inventoryEscape($quantities[$lineIndex] ?? '1') ?>" class="client-quantity w-full rounded-md border border-slate-300 px-3 py-2.5 font-normal"></label><label class="space-y-1 text-sm font-medium">Prix unitaire (FBu)<input name="unit_price[]" type="number" min="1" step="1" required value="<?= inventoryEscape($unitPrices[$lineIndex] ?? '') ?>" class="client-unit-price w-full rounded-md border border-slate-300 px-3 py-2.5 font-normal"></label><div class="text-sm"><span class="block font-medium">Total ligne</span><output class="client-line-total block rounded-md bg-slate-50 px-3 py-2.5 text-right">—</output></div><button type="button" class="remove-client-line rounded-md border border-slate-300 p-2 text-rose-700" aria-label="Retirer l’article" title="Retirer l’article">Retirer</button></div><?php endforeach; ?></div><div class="flex justify-end border-t border-slate-100 pt-3 text-sm font-semibold">Total estimé : <output id="clientGrandTotal" class="ml-2">0 FBu</output></div></fieldset>
             <div class="grid gap-4 border-t border-slate-100 pt-4 sm:grid-cols-2"><label class="space-y-1 text-sm font-medium">Atelier destinataire <span class="text-red-600">*</span><input name="workshop" maxlength="60" required value="<?= inventoryEscape($workshop) ?>" class="w-full rounded-md border border-slate-300 px-3 py-2.5 font-normal"></label><label class="space-y-1 text-sm font-medium">Bénéficiaire<input name="beneficiary" maxlength="60" value="<?= inventoryEscape($beneficiary) ?>" class="w-full rounded-md border border-slate-300 px-3 py-2.5 font-normal"></label><label class="space-y-1 text-sm font-medium">Référence du travail<input name="work_reference" maxlength="60" value="<?= inventoryEscape($workReference) ?>" class="w-full rounded-md border border-slate-300 px-3 py-2.5 font-normal"></label><label class="space-y-1 text-sm font-medium sm:col-span-2">Motif <span class="text-red-600">*</span><textarea name="reason" maxlength="200" rows="3" required class="w-full rounded-md border border-slate-300 px-3 py-2.5 font-normal"><?= inventoryEscape($reason) ?></textarea></label></div>
             <div class="flex justify-end border-t pt-4"><button class="rounded-md bg-rose-700 px-4 py-2.5 text-sm font-semibold text-white" <?= !$products ? 'disabled' : '' ?>>Confirmer la sortie et transmettre à la réception</button></div>
         </form>
-        <template id="clientLineTemplate"><div class="client-line grid gap-3 rounded-md border border-slate-200 p-3 sm:grid-cols-[minmax(0,1fr)_9rem_auto] sm:items-end"><label class="space-y-1 text-sm font-medium">Article<select name="product_id[]" required class="client-product w-full rounded-md border border-slate-300 bg-white px-3 py-2.5 font-normal"><option value="">Choisir un article</option><?php foreach ($products as $product): ?><option value="<?= (int) $product['id'] ?>"><?= inventoryEscape($product['medicine_name']) ?> · <?= number_format((float) $product['actual_quantity'], 2, ',', ' ') ?> <?= inventoryEscape($product['sell_type']) ?></option><?php endforeach; ?></select></label><label class="space-y-1 text-sm font-medium">Quantité<input name="quantity[]" type="number" min="0.01" step="0.01" required value="1" class="w-full rounded-md border border-slate-300 px-3 py-2.5 font-normal"></label><button type="button" class="remove-client-line rounded-md border border-slate-300 p-2 text-rose-700" aria-label="Retirer l’article">Retirer</button></div></template>
-        <script>(()=>{const lines=document.getElementById('clientLines'),add=document.getElementById('addClientLine'),template=document.getElementById('clientLineTemplate');if(!lines||!add||!template)return;add.addEventListener('click',()=>{if(lines.children.length<50)lines.append(template.content.cloneNode(true));});lines.addEventListener('click',event=>{const button=event.target.closest('.remove-client-line');if(!button)return;const rows=lines.querySelectorAll('.client-line');if(rows.length>1)button.closest('.client-line').remove();else{rows[0].querySelector('select').value='';rows[0].querySelector('input').value='1';}});})();</script>
+        <template id="clientLineTemplate"><div class="client-line grid gap-3 rounded-md border border-slate-200 p-3 sm:grid-cols-[minmax(0,1fr)_7rem_8rem_9rem_9rem_auto] sm:items-end"><label class="space-y-1 text-sm font-medium">Article<select name="product_id[]" required class="client-product w-full rounded-md border border-slate-300 bg-white px-3 py-2.5 font-normal"><option value="">Choisir un article</option><?php foreach ($products as $product): ?><option value="<?= (int) $product['id'] ?>" data-unit="<?= inventoryEscape($product['sell_type']) ?>"><?= inventoryEscape($product['medicine_name']) ?> · <?= number_format((float) $product['actual_quantity'], 2, ',', ' ') ?> <?= inventoryEscape($product['sell_type']) ?></option><?php endforeach; ?></select></label><div class="text-sm"><span class="block font-medium">Unité</span><output class="client-unit block rounded-md bg-slate-50 px-3 py-2.5">—</output></div><label class="space-y-1 text-sm font-medium">Quantité<input name="quantity[]" type="number" min="0.01" step="0.01" required value="1" class="client-quantity w-full rounded-md border border-slate-300 px-3 py-2.5 font-normal"></label><label class="space-y-1 text-sm font-medium">Prix unitaire (FBu)<input name="unit_price[]" type="number" min="1" step="1" required class="client-unit-price w-full rounded-md border border-slate-300 px-3 py-2.5 font-normal"></label><div class="text-sm"><span class="block font-medium">Total ligne</span><output class="client-line-total block rounded-md bg-slate-50 px-3 py-2.5 text-right">—</output></div><button type="button" class="remove-client-line rounded-md border border-slate-300 p-2 text-rose-700" aria-label="Retirer l’article">Retirer</button></div></template>
+        <script>(()=>{const lines=document.getElementById('clientLines'),add=document.getElementById('addClientLine'),template=document.getElementById('clientLineTemplate'),total=document.getElementById('clientGrandTotal');if(!lines||!add||!template)return;const money=value=>`${new Intl.NumberFormat('fr-FR',{maximumFractionDigits:0}).format(value)} FBu`;function recalculate(){let subtotal=0;lines.querySelectorAll('.client-line').forEach(row=>{const select=row.querySelector('.client-product'),quantity=Number(row.querySelector('.client-quantity').value)||0,price=Number(row.querySelector('.client-unit-price').value)||0;row.querySelector('.client-unit').textContent=select.selectedOptions[0]?.dataset.unit||'—';const lineTotal=Math.round(quantity*price);subtotal+=lineTotal;row.querySelector('.client-line-total').textContent=select.value&&price>0?money(lineTotal):'—';});const tax=Math.round(subtotal*<?= defined('TVA_DEFAULT')?(float)TVA_DEFAULT:18 ?> /100);total.textContent=money(subtotal+tax);}add.addEventListener('click',()=>{if(lines.children.length<50)lines.append(template.content.cloneNode(true));recalculate();});lines.addEventListener('input',recalculate);lines.addEventListener('change',recalculate);lines.addEventListener('click',event=>{const button=event.target.closest('.remove-client-line');if(!button)return;const rows=lines.querySelectorAll('.client-line');if(rows.length>1)button.closest('.client-line').remove();else{rows[0].querySelector('select').value='';rows[0].querySelector('.client-quantity').value='1';rows[0].querySelector('.client-unit-price').value='';}recalculate();});recalculate();})();</script>
     <?php endif; ?>
 </section>

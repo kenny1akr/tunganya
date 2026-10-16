@@ -249,6 +249,44 @@ $user = [
 $_SESSION["role"] = $role;
 $ROUTES = $ROUTES_BY_ROLE[$role];
 
+if (($_GET['ajax'] ?? '') === 'client-search') {
+    header('Content-Type: application/json; charset=utf-8');
+    header('Cache-Control: no-store, private');
+    if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') {
+        http_response_code(405);
+        echo json_encode(['error' => 'Méthode non autorisée.']);
+        exit;
+    }
+    if (!userCan($user, 'flux.sorties.client') || ($_GET['route'] ?? '') !== $role . '/stock/sorties-clients') {
+        http_response_code(403);
+        echo json_encode(['error' => 'Accès refusé.']);
+        exit;
+    }
+    $clientSearch = trim((string) ($_GET['q'] ?? ''));
+    if ($clientSearch === '') {
+        echo json_encode(['clients' => []], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+    if (mb_strlen($clientSearch) > 100) {
+        http_response_code(400);
+        echo json_encode(['error' => 'La recherche est trop longue.'], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+    try {
+        $pattern = '%' . $clientSearch . '%';
+        $clients = $db->fetchAll(
+            "SELECT id, name, phone FROM partners WHERE category = 'client' AND (LOWER(name) LIKE LOWER(?) OR phone LIKE ?) ORDER BY name LIMIT 20",
+            [$pattern, $pattern]
+        );
+        echo json_encode(['clients' => $clients], JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+    } catch (Throwable $error) {
+        error_log('Client search failed: ' . $error->getMessage());
+        http_response_code(500);
+        echo json_encode(['error' => 'La recherche des clients est momentanément indisponible.'], JSON_UNESCAPED_UNICODE);
+    }
+    exit;
+}
+
 // ============================================================
 // BIRTHDAYS — clients fêtant leur anniversaire dans les 14 jours
 // ============================================================

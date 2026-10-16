@@ -29,11 +29,9 @@ $SIDEBAR_CONFIG = [
                 "permission" => "stock.view",
                 "items"      => [
                     ["label" => "Vue d'ensemble",      "href" => "/stock",                 "permission" => "stock.view"],
-                    ["label" => "Catégories",          "href" => "/stock/categories",      "permission" => "stock.categories"],
                     ["label" => "Ajouter un produit",  "href" => "/stock/ajouter",         "permission" => "stock.create"],
                     ["label" => "Entrée de stock",     "href" => "/stock/entrees",         "permission" => "flux.entrees"],
                     ["label" => "Sortie de stock",     "href" => "/stock/sorties",         "permission" => "flux.sorties"],
-                    ["label" => "Sortie client",       "href" => "/stock/sorties-clients", "permission" => "flux.sorties.client"],
                     ["label" => "Mouvements produits", "href" => "/stock/mouvements",      "permission" => "stock.mouvements"],
                     ["label" => "Alertes seuils",      "href" => "/stock/alertes",         "permission" => "stock.alertes"],
                     ["label" => "Réconciliation",      "href" => "/stock/reconciliation",  "permission" => "stock.reconciliation"],
@@ -52,58 +50,8 @@ $SIDEBAR_CONFIG = [
                 "permission" => "caisse.view",
                 "items"      => [
                     ["label" => "Transactions caisse", "href" => "/caisse/transactions", "permission" => "caisse.view"],
-                    ["label" => "Vente comptoir", "href" => "/ventes/nouvelle", "permission" => "ventes.create"],
-                    ["label" => "Factures de vente", "href" => "/ventes/factures", "permission" => "factures.view"],
-                    ["label" => "Entrées / sorties caisse", "href" => "/caisse/operations", "permission" => "caisse.operations"],
-                    ["label" => "Rapports financiers", "href" => "/caisse/rapports",     "permission" => "caisse.rapport"],
-                    ["label" => "États comptables",    "href" => "/caisse/etats",        "permission" => "caisse.rapport"],
                 ],
-            ],
-            [
-                "type"       => "dropdown",
-                "label"      => "Transactions bancaires",
-                "icon"       => "credit-card",
-                "permission" => "banque.view",
-                "items"      => [
-                    ["label" => "Comptes bancaires", "href" => "/banque/comptes",       "permission" => "banque.view"],
-                    ["label" => "Virements",         "href" => "/banque/virements",     "permission" => "banque.create"],
-                    ["label" => "Rapprochement",     "href" => "/banque/rapprochement", "permission" => "banque.rapprochement"],
-                ],
-            ],
-        ],
-    ],
-
-    "reception_sales" => [
-        "label" => "Ventes & caisse réception",
-        "items" => [
-            [
-                "type"       => "link",
-                "label"      => "Vente comptoir",
-                "icon"       => "shopping-cart",
-                "href"       => "/ventes/nouvelle",
-                "permission" => "ventes.create",
-            ],
-            [
-                "type"       => "link",
-                "label"      => "Factures de vente",
-                "icon"       => "file-text",
-                "href"       => "/ventes/factures",
-                "permission" => "factures.view",
-            ],
-            [
-                "type"       => "link",
-                "label"      => "Factures en attente",
-                "icon"       => "clock",
-                "href"       => "/ventes/factures-attente",
-                "permission" => "factures.view",
-            ],
-            [
-                "type"       => "link",
-                "label"      => "Entrées / sorties caisse",
-                "icon"       => "repeat",
-                "href"       => "/caisse/operations",
-                "permission" => "caisse.operations",
-            ],
+            ]
         ],
     ],
 
